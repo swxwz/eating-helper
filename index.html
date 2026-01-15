@@ -2,162 +2,131 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>饮食觉察助手</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>正念饮食助手</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .eating-bg {
-            background: radial-gradient(circle, #fffbeb 0%, #fef3c7 100%);
-        }
-        .btn-bounce { transition: transform 0.1s; }
-        .btn-bounce:active { transform: scale(0.95); }
+        body { touch-action: manipulation; }
+        .bg-zen { background: linear-gradient(135deg, #fff9f0 0%, #fff5e6 100%); }
     </style>
 </head>
-<body class="bg-gray-50 flex flex-col min-h-screen font-sans">
+<body class="bg-zen min-h-screen flex flex-col font-sans text-gray-800">
 
-    <div id="recordLog" class="p-4 bg-white shadow-sm max-h-32 overflow-y-auto text-sm text-gray-600">
-        <div class="font-bold mb-1 text-gray-400">用餐觉察记录：</div>
-        <ul id="logList" class="space-y-1"></ul>
+    <div id="logHeader" class="sticky top-0 bg-white/80 backdrop-blur-md border-b border-orange-100 p-4 z-10">
+        <p class="text-xs font-bold text-orange-400 uppercase tracking-wider mb-2">进食察觉日记</p>
+        <div id="logList" class="space-y-1 max-h-24 overflow-y-auto text-sm italic text-gray-500">
+            <p>点击“开始”开启一段专注的用餐时光...</p>
+        </div>
     </div>
 
-    <main class="flex-grow flex flex-col items-center justify-center p-6 text-center">
+    <main class="flex-grow flex flex-col items-center justify-center px-6">
         
-        <div id="startScreen" class="space-y-6">
-            <div class="text-6xl">🍱</div>
-            <button onclick="startEating()" class="btn-bounce bg-orange-500 text-white px-12 py-4 rounded-full text-xl font-bold shadow-lg">
-                开始吃饭
+        <div id="startScreen" class="text-center animate-in fade-in duration-700">
+            <div class="text-7xl mb-8">🍲</div>
+            <h1 class="text-2xl font-light mb-8 text-gray-600">准备好用心享受美食了吗？</h1>
+            <button onclick="startEating()" class="bg-orange-500 hover:bg-orange-600 text-white w-20 h-20 rounded-full text-lg font-bold shadow-xl shadow-orange-200 transition-all active:scale-90">
+                开始
             </button>
         </div>
 
-        <div id="eatingScreen" class="hidden w-full space-y-8">
-            <div class="relative w-48 h-48 mx-auto bg-white rounded-full flex items-center justify-center shadow-inner eating-bg">
-                <div class="text-6xl animate-bounce">🥢</div>
-            </div>
+        <div id="eatingScreen" class="hidden w-full max-w-sm text-center">
+            <div id="timerDisplay" class="font-mono text-4xl font-thin text-orange-300 mb-12">00:00</div>
             
-            <div id="timerDisplay" class="text-gray-400 text-sm">已用时：00:00</div>
-
-            <div id="questionBox" class="hidden space-y-4 animate-fade-in">
-                <p class="text-lg font-medium text-gray-800">你现在有几成饱腹感？</p>
-                <div id="optionsContainer" class="grid grid-cols-1 gap-3">
-                    </div>
+            <div class="mb-12 relative">
+                <div class="absolute inset-0 bg-orange-200 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+                <div class="text-6xl relative animate-bounce duration-[2000ms]">🥢</div>
             </div>
 
-            <button onclick="stopEating()" class="mt-12 text-gray-400 underline text-sm">
+            <div id="questionBox" class="hidden space-y-4 bg-white p-6 rounded-3xl shadow-xl border border-orange-50 shadow-orange-100/50">
+                <p class="font-medium text-lg mb-4">目前的饱腹感是？</p>
+                <div id="optionsContainer" class="grid grid-cols-1 gap-3"></div>
+            </div>
+
+            <button onclick="stopEating()" class="mt-20 text-gray-400 text-sm hover:text-orange-400 transition">
                 结束吃饭
             </button>
         </div>
     </main>
 
     <script>
-        let startTime;
-        let timerInterval;
-        let checkInterval;
-        let lastChoice = "";
-        let isWaitingForChoice = false;
+        let startTime, timerInterval, lastChoice = "";
+        let isWaiting = false;
 
-        const logList = document.getElementById('logList');
-        const questionBox = document.getElementById('questionBox');
-        const optionsContainer = document.getElementById('optionsContainer');
-
-        // 柔和的语音提醒
-        function playSoftNotice() {
-            const msg = new SpeechSynthesisUtterance("请问你现在几成饱了？");
-            msg.rate = 0.8; // 语速稍慢更柔和
-            msg.pitch = 1;
-            msg.lang = 'zh-CN';
+        function playSoftNotice(text) {
+            const msg = new SpeechSynthesisUtterance(text || "请问你现在几成饱了？");
+            msg.rate = 0.8;
+            msg.pitch = 1.1;
+            msg.volume = 0.8;
             window.speechSynthesis.speak(msg);
         }
 
         function startEating() {
+            // 解决移动端语音激活
+            playSoftNotice("用餐开始，祝你胃口好");
+            
             startTime = new Date();
             document.getElementById('startScreen').classList.add('hidden');
             document.getElementById('eatingScreen').classList.remove('hidden');
             
-            // 启动计时器
-            timerInterval = setInterval(updateTimer, 1000);
-            
-            // 3分钟后第一次提醒 (180000ms)
-            setTimeout(() => triggerCheck(), 180000);
-        }
+            timerInterval = setInterval(() => {
+                const diff = Math.floor((new Date() - startTime) / 1000);
+                const m = String(Math.floor(diff / 60)).padStart(2, '0');
+                const s = String(diff % 60).padStart(2, '0');
+                document.getElementById('timerDisplay').innerText = `${m}:${s}`;
+            }, 1000);
 
-        function updateTimer() {
-            const now = new Date();
-            const diff = Math.floor((now - startTime) / 1000);
-            const m = String(Math.floor(diff / 60)).padStart(2, '0');
-            const s = String(diff % 60).padStart(2, '0');
-            document.getElementById('timerDisplay').innerText = `已用时：${m}:${s}`;
+            // 3分钟后首次提醒 (180000ms)
+            setTimeout(triggerCheck, 180000);
         }
 
         function triggerCheck() {
-            isWaitingForChoice = true;
-            questionBox.classList.remove('hidden');
-            generateOptions();
-            
-            // 持续提醒逻辑
-            const reminderId = setInterval(() => {
-                if (isWaitingForChoice) {
-                    playSoftNotice();
-                } else {
-                    clearInterval(reminderId);
-                }
-            }, 10000); // 如果不选，每10秒柔和提醒一次
-            
+            isWaiting = true;
+            document.getElementById('questionBox').classList.remove('hidden');
+            renderButtons();
             playSoftNotice();
+
+            // 柔和循环提醒
+            const loop = setInterval(() => {
+                if(isWaiting) playSoftNotice("请选择你的饱腹感");
+                else clearInterval(loop);
+            }, 15000);
         }
 
-        function generateOptions() {
-            let options = [];
-            if (!lastChoice || lastChoice === "5成饱以下") {
-                options = ["5成饱以下", "5－6成", "6－7成", "7成以上"];
-            } else if (lastChoice === "5－6成") {
-                options = ["5－6成", "6－7成", "7－8成", "8成以上"];
-            } else if (lastChoice === "6－7成") {
-                options = ["6－7成", "7－8成", "8－9成", "9成以上"];
-            } else if (lastChoice === "7－8成") {
-                options = ["8－9成", "9成－10成", "10成过量", "超级过量"];
-            } else if (lastChoice === "8－9成" || lastChoice === "9成－10成") {
-                options = ["9成－10成", "10成过量", "超级过量"];
-            } else if (lastChoice === "10成过量") {
-                options = ["10成过量", "超级过量"];
-            }
+        function renderButtons() {
+            let opts = ["5成饱以下", "5－6成", "6－7成", "7成以上"]; // 默认
+            if (lastChoice === "5－6成") opts = ["5－6成", "6－7成", "7－8成", "8成以上"];
+            else if (lastChoice === "6－7成") opts = ["6－7成", "7－8成", "8－9成", "9成以上"];
+            else if (lastChoice === "7－8成") opts = ["8－9成", "9成－10成", "10成过量", "超级过量"];
+            else if (lastChoice === "8－9成" || lastChoice === "9成－10成") opts = ["9成－10成", "10成过量", "超级过量"];
+            else if (lastChoice === "10成过量") opts = ["10成过量", "超级过量"];
 
-            optionsContainer.innerHTML = '';
-            options.forEach(opt => {
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+            opts.forEach(text => {
                 const btn = document.createElement('button');
-                btn.className = "bg-white border-2 border-orange-200 py-3 rounded-xl shadow-sm active:bg-orange-100 transition";
-                btn.innerText = opt;
-                btn.onclick = () => makeChoice(opt);
-                optionsContainer.appendChild(btn);
+                btn.className = "w-full py-4 rounded-2xl border-2 border-orange-100 bg-orange-50/30 active:bg-orange-500 active:text-white transition-all font-medium";
+                btn.innerText = text;
+                btn.onclick = () => {
+                    lastChoice = text;
+                    isWaiting = false;
+                    document.getElementById('questionBox').classList.add('hidden');
+                    addLog(text);
+                    if(text !== "超级过量") setTimeout(triggerCheck, 120000); // 2分钟后再次提醒
+                };
+                container.appendChild(btn);
             });
         }
 
-        function makeChoice(val) {
-            lastChoice = val;
-            isWaitingForChoice = false;
-            questionBox.classList.add('hidden');
-            
-            // 记录时间戳
-            const now = new Date();
-            const diff = Math.floor((now - startTime) / 1000);
+        function addLog(val) {
+            const diff = Math.floor((new Date() - startTime) / 1000);
             const timeStr = `${Math.floor(diff/60)}分${diff%60}秒`;
-            
-            const li = document.createElement('li');
-            li.innerHTML = `<span class="text-orange-500 font-mono">${timeStr}</span> : ${val}`;
-            logList.prepend(li);
-
-            if (val === "超级过量") {
-                alert("检测到已达到超级过量，建议停止进食哦。");
-            }
-
-            // 开启2分钟后的下一次提醒
-            setTimeout(() => triggerCheck(), 120000);
+            const logList = document.getElementById('logList');
+            if(logList.innerText.includes("点击“开始”")) logList.innerHTML = "";
+            logList.innerHTML = `<p class="animate-in slide-in-from-left duration-300">📌 ${timeStr}：<span class="text-orange-600 font-bold">${val}</span></p>` + logList.innerHTML;
         }
 
         function stopEating() {
-            if(confirm("确定结束用餐吗？")) {
-                clearInterval(timerInterval);
-                location.reload(); // 简单重置
-            }
+            if(confirm("确定要结束这段用餐时光吗？")) location.reload();
         }
     </script>
 </body>
