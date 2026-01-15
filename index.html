@@ -36,13 +36,14 @@
 
   <!-- 主内容 -->
   <main class="px-5 pt-6 pb-28">
+
     <!-- 开始页 -->
     <section id="startScreen" class="text-center space-y-5">
       <div class="text-6xl">🍱</div>
       <div class="text-gray-800 font-semibold text-xl">饮食觉察助手</div>
       <div class="text-gray-500 text-sm leading-relaxed">
-        吃到合适的饱就停下。<br />
-        系统会定时用轻提示音提醒你选择。
+        你的目标是 <span class="font-semibold text-gray-800">7成饱</span>。<br />
+        系统会定时用轻提示音提醒你做选择。
       </div>
 
       <button id="startBtn"
@@ -63,6 +64,12 @@
 
       <div id="timerDisplay" class="text-gray-700 text-sm font-medium">已用时：00:00</div>
 
+      <!-- 状态提醒文案（大字） -->
+      <div id="statusBanner" class="hidden mx-auto max-w-sm rounded-2xl border bg-white px-4 py-4 shadow-sm text-left">
+        <div id="statusTitle" class="text-base font-extrabold text-gray-900"></div>
+        <div id="statusText" class="mt-1 text-sm font-semibold text-gray-700 leading-relaxed"></div>
+      </div>
+
       <div class="text-gray-400 text-xs leading-relaxed">
         到时间会弹出选择卡片（可滚动）。不选会轻声重复提醒。
       </div>
@@ -70,7 +77,6 @@
 
     <!-- 终局：超级过量 -->
     <section id="overfullScreen" class="hidden text-center space-y-6 pt-8">
-      <!-- 内置 SVG Logo（不依赖 emoji 字体） -->
       <div class="mx-auto w-28 h-28 rounded-full bg-orange-50 flex items-center justify-center shadow-inner">
         <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
           <defs>
@@ -87,12 +93,10 @@
       </div>
 
       <div class="text-3xl font-extrabold text-gray-900">超级过量</div>
-
       <div class="text-gray-800 text-lg font-semibold leading-relaxed">
         现在先停下来。<br />
         深呼吸 3 次，喝一点温水，休息一下。
       </div>
-
       <div class="text-gray-500 text-sm leading-relaxed">
         计时与提醒已暂停。<br />
         底部<strong>长按 1 秒</strong>即可结束本次记录。
@@ -100,7 +104,7 @@
     </section>
   </main>
 
-  <!-- 选择弹层（小屏也能看到所有选项：可滚动） -->
+  <!-- 选择弹层 -->
   <div id="choiceSheet" class="hidden fixed inset-0 z-40">
     <div class="absolute inset-0 bg-black/30"></div>
 
@@ -114,13 +118,62 @@
           <div class="text-xs text-gray-400 no-select" id="choiceHint"></div>
         </div>
 
-        <!-- 小屏关键：高度更大 + 可滚动 -->
         <div id="optionsContainer"
              class="mt-4 grid grid-cols-1 gap-3 overflow-y-auto"
              style="max-height: 52vh;">
         </div>
 
+        <!-- 超过目标后：每次选择面板都出现“结束用餐（长按）” -->
+        <div id="sheetEndWrap" class="hidden mt-4">
+          <button id="sheetEndBtn"
+            class="relative overflow-hidden w-full btn-bounce bg-white border-2 border-orange-200 text-orange-700 px-8 py-4 rounded-2xl text-base font-extrabold shadow-sm active:bg-orange-50">
+            <div id="sheetEndProgress"
+              class="absolute inset-0 bg-orange-100"
+              style="transform: scaleX(0); transform-origin: left; transition: transform 80ms linear;">
+            </div>
+            <span id="sheetEndLabel" class="relative">长按 1 秒结束用餐</span>
+          </button>
+          <div class="text-xs text-gray-400 mt-2">
+            建议：已超过 7 成目标，及时结束会更舒服。
+          </div>
+        </div>
+
         <div class="h-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 目标达成弹层 -->
+  <div id="goalSheet" class="hidden fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/35"></div>
+    <div class="absolute left-0 right-0 bottom-0 bg-white rounded-t-3xl shadow-2xl safe-bottom">
+      <div class="px-5 pt-6 pb-5 text-center">
+        <div class="text-2xl font-extrabold text-gray-900">🎯 达成目标：7成饱</div>
+        <div class="mt-2 text-gray-700 text-base font-semibold leading-relaxed">
+          太棒了！现在停在 7 成会更舒服。<br/>
+          你想继续用餐还是结束？
+        </div>
+
+        <div class="mt-5 grid grid-cols-1 gap-3">
+          <button id="continueBtn"
+            class="btn-bounce bg-orange-500 text-white py-4 rounded-2xl text-base font-extrabold shadow-md active:bg-orange-600">
+            继续用餐
+          </button>
+
+          <!-- 这里也用长按，避免误触 -->
+          <button id="goalEndBtn"
+            class="relative overflow-hidden btn-bounce bg-white border-2 border-gray-200 text-gray-900 py-4 rounded-2xl text-base font-extrabold shadow-sm active:bg-gray-100">
+            <div id="goalEndProgress"
+              class="absolute inset-0 bg-gray-100"
+              style="transform: scaleX(0); transform-origin: left; transition: transform 80ms linear;">
+            </div>
+            <span id="goalEndLabel" class="relative">长按 1 秒结束吃饭</span>
+          </button>
+        </div>
+
+        <div class="text-xs text-gray-400 mt-3">
+          计时仍在继续，你可以放心决定。
+        </div>
       </div>
     </div>
   </div>
@@ -141,22 +194,16 @@
 
   <script>
     /* =========================================================
-       ✅ 修改时间：只改下面两行
+       ✅ 你只需要改这里（提醒时间 + 音量）
        ========================================================= */
     const FIRST_CHECK_MS = 10 * 1000; // 第一轮提醒（测试 10s）
     const NEXT_CHECK_MS  = 5  * 1000; // 后续每轮（测试 5s）
+    const REMINDER_EVERY_MS = 10 * 1000; // 不选择时重复提醒频率
+    const LONG_PRESS_MS = 1000; // 长按结束时长
+    const CHIME_VOLUME = 0.06; // ✅ 总音量旋钮（推荐 0.05~0.09）
 
-    /* 不选择时持续提醒频率 */
-    const REMINDER_EVERY_MS = 10 * 1000;
-
-    /* 长按结束时长 */
-    const LONG_PRESS_MS = 1000;
-
-    /* 可选：震动（手机支持才会生效） */
     const ENABLE_VIBRATE = true;
     const VIBRATE_PATTERN = [25];
-
-    /* 轻音乐提示音（WebAudio） */
     const ENABLE_CHIME = true;
 
     // ====== 状态 ======
@@ -170,13 +217,13 @@
     let hasStarted = false;
     let hasEnded = false;
 
+    let goalAchieved = false;     // 是否达成过7成
+    let overGoal = false;         // 是否超过7成（7-8及以上）
+    let superOverfull = false;    // 是否超级过量
+
     // WebAudio
     let audioCtx = null;
     let audioUnlocked = false;
-
-    // 长按结束
-    let pressTimer = null;
-    let pressing = false;
 
     // ====== DOM ======
     const startBtn = document.getElementById('startBtn');
@@ -186,9 +233,24 @@
 
     const timerDisplay = document.getElementById('timerDisplay');
 
+    const statusBanner = document.getElementById('statusBanner');
+    const statusTitle = document.getElementById('statusTitle');
+    const statusText = document.getElementById('statusText');
+
     const choiceSheet = document.getElementById('choiceSheet');
     const choiceHint = document.getElementById('choiceHint');
     const optionsContainer = document.getElementById('optionsContainer');
+
+    const sheetEndWrap = document.getElementById('sheetEndWrap');
+    const sheetEndBtn = document.getElementById('sheetEndBtn');
+    const sheetEndProgress = document.getElementById('sheetEndProgress');
+    const sheetEndLabel = document.getElementById('sheetEndLabel');
+
+    const goalSheet = document.getElementById('goalSheet');
+    const continueBtn = document.getElementById('continueBtn');
+    const goalEndBtn = document.getElementById('goalEndBtn');
+    const goalEndProgress = document.getElementById('goalEndProgress');
+    const goalEndLabel = document.getElementById('goalEndLabel');
 
     const logList = document.getElementById('logList');
     const logEmpty = document.getElementById('logEmpty');
@@ -199,38 +261,46 @@
     const endBtnLabel = document.getElementById('endBtnLabel');
     const endProgress = document.getElementById('endProgress');
 
-    // ====== 选项配置（用 key）======
+    // ====== 文案与选项 ======
     const LABEL = {
-      "<5":  "5成饱以下",
-      "5-6": "5－6成",
-      "6-7": "6－7成",
-      "7+":  "7成以上",
-      "7-8": "7－8成",
-      "8-9": "8－9成",
-      "8+":  "8成以上",
-      "9+":  "9成以上",
-      "9-10":"9成－10成",
-      "10+": "10成过量",
-      "11+": "超级过量"
+      "<5":     "5成饱以下",
+      "5-6":    "5－6成",
+      "6-7":    "6－7成",
+      "7-goal": "7成（达成目标）",
+      "7-8":    "7－8成",
+      "8+":     "8成以上",
+      "8-9":    "8－9成",
+      "9+":     "9成以上",
+      "9-10":   "9成－10成",
+      "10+":    "10成过量",
+      "11+":    "超级过量"
     };
 
-    function normalizeForNext(key) {
-      if (key === "7+") return "7-8";
-      if (key === "8+") return "8-9";
-      if (key === "9+") return "9-10";
-      return key;
+    function nextOptionsByLast(k) {
+      // 每一组都保证：6-7 与 7-8 之间插入 7-goal
+      if (!k || k === "<5") return ["<5", "5-6", "6-7", "7-goal", "7-8"];
+      if (k === "5-6")      return ["5-6", "6-7", "7-goal", "7-8", "8+"];
+      if (k === "6-7")      return ["6-7", "7-goal", "7-8", "8-9", "9+"];
+      if (k === "7-goal")   return ["7-goal", "7-8", "8-9", "9+"]; // 达成后继续用餐：允许再次确认停在7
+      if (k === "7-8")      return ["8-9", "9-10", "10+", "11+"];
+      if (k === "8-9")      return ["9-10", "10+", "11+"];
+      if (k === "9+")       return ["9-10", "10+", "11+"];
+      if (k === "9-10")     return ["9-10", "10+", "11+"];
+      if (k === "10+")      return ["10+", "11+"];
+      if (k === "11+")      return ["11+"];
+      return ["9-10", "10+", "11+"];
     }
 
-    function nextOptionsByLast(lastNormalizedKey) {
-      if (!lastNormalizedKey || lastNormalizedKey === "<5") return ["<5", "5-6", "6-7", "7+"];
-      if (lastNormalizedKey === "5-6") return ["5-6", "6-7", "7-8", "8+"];
-      if (lastNormalizedKey === "6-7") return ["6-7", "7-8", "8-9", "9+"];
-      if (lastNormalizedKey === "7-8") return ["8-9", "9-10", "10+", "11+"];
-      if (lastNormalizedKey === "8-9") return ["9-10", "10+", "11+"];
-      if (lastNormalizedKey === "9-10") return ["9-10", "10+", "11+"];
-      if (lastNormalizedKey === "10+") return ["10+", "11+"];
-      if (lastNormalizedKey === "11+") return ["11+"];
-      return ["9-10", "10+", "11+"];
+    // ====== UI：Banner ======
+    function showBanner(title, text) {
+      statusTitle.textContent = title;
+      statusText.textContent = text;
+      statusBanner.classList.remove('hidden');
+    }
+    function hideBanner() {
+      statusBanner.classList.add('hidden');
+      statusTitle.textContent = '';
+      statusText.textContent = '';
     }
 
     // ====== 计时 ======
@@ -259,7 +329,7 @@
       try { navigator.vibrate(VIBRATE_PATTERN); } catch (_) {}
     }
 
-    // ====== WebAudio 解锁 ======
+    // ====== WebAudio ======
     async function unlockAudio() {
       if (!ENABLE_CHIME) return;
       try {
@@ -268,42 +338,40 @@
         audioCtx = audioCtx || new AC();
         if (audioCtx.state === 'suspended') await audioCtx.resume();
         audioUnlocked = true;
-      } catch (_) {
-        // 静默失败：不影响计时
-      }
+      } catch (_) {}
     }
 
-    // ====== 1秒内轻音乐提示音（短 chime）======
     function playChime() {
       if (!ENABLE_CHIME) return;
       if (!audioCtx || !audioUnlocked) return;
 
       try {
         const now = audioCtx.currentTime;
+        const v1 = CHIME_VOLUME;
+        const v2 = Math.min(CHIME_VOLUME * 1.15, 0.12);
 
-        function tone(freq, start, dur, peak=0.03) {
+        function tone(freq, start, dur, peak) {
           const o = audioCtx.createOscillator();
           const g = audioCtx.createGain();
           o.type = 'sine';
           o.frequency.setValueAtTime(freq, start);
+
           g.gain.setValueAtTime(0.0001, start);
           g.gain.exponentialRampToValueAtTime(peak, start + 0.02);
           g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+
           o.connect(g);
           g.connect(audioCtx.destination);
           o.start(start);
           o.stop(start + dur + 0.01);
         }
 
-        // 两个音符（总时长 < 1s），更像“轻音乐提醒”而不是哔声
-        tone(523.25, now + 0.00, 0.18, 0.028); // C5
-        tone(659.25, now + 0.22, 0.22, 0.030); // E5
-      } catch (_) {
-        // 静默失败
-      }
+        // < 1s 的轻音乐提醒
+        tone(523.25, now + 0.00, 0.18, v1);
+        tone(659.25, now + 0.22, 0.22, v2);
+      } catch (_) {}
     }
 
-    // 统一提醒入口（不再语音）
     function notifyUser() {
       playChime();
       softVibrate();
@@ -315,12 +383,11 @@
       nextCheckTimeout = setTimeout(triggerCheck, ms);
     }
 
-    function openChoiceSheet() {
-      choiceSheet.classList.remove('hidden');
-    }
-    function closeChoiceSheet() {
-      choiceSheet.classList.add('hidden');
-    }
+    function openChoiceSheet() { choiceSheet.classList.remove('hidden'); }
+    function closeChoiceSheet() { choiceSheet.classList.add('hidden'); }
+
+    function openGoalSheet() { goalSheet.classList.remove('hidden'); }
+    function closeGoalSheet() { goalSheet.classList.add('hidden'); }
 
     function renderOptions() {
       const options = nextOptionsByLast(lastKeyForNext);
@@ -329,15 +396,24 @@
 
       options.forEach(key => {
         const btn = document.createElement('button');
-        btn.className = "btn-bounce bg-white border-2 border-orange-200 py-3 rounded-xl shadow-sm active:bg-orange-50 transition text-base font-semibold";
+        btn.className = "btn-bounce bg-white border-2 border-orange-200 py-3 rounded-xl shadow-sm active:bg-orange-50 transition text-base font-extrabold";
         btn.textContent = LABEL[key] || key;
         btn.addEventListener('click', () => makeChoice(key));
         optionsContainer.appendChild(btn);
       });
+
+      // 超过目标后：每次出现结束按钮
+      if (overGoal && !superOverfull) {
+        sheetEndWrap.classList.remove('hidden');
+      } else {
+        sheetEndWrap.classList.add('hidden');
+      }
     }
 
     function triggerCheck() {
       if (!hasStarted || hasEnded) return;
+      if (superOverfull) return;
+      if (goalSheet && !goalSheet.classList.contains('hidden')) return; // 目标达成卡片打开时不打断
       if (isWaitingForChoice) return;
 
       isWaitingForChoice = true;
@@ -352,6 +428,38 @@
       notifyUser();
     }
 
+    function applyPostChoiceUX(key) {
+      // 清除默认
+      if (key === "6-7") {
+        showBanner(
+          "快到 7 成饱了哦！",
+          "宝子，停在 7 成会让自己更舒服～"
+        );
+        return;
+      }
+
+      if (key === "7-goal") {
+        showBanner(
+          "已达成 7 成目标 🎯",
+          "现在停下来会更舒服。你也可以选择继续。"
+        );
+        return;
+      }
+
+      // 只要超过 7 成目标：持续提示（更符合用户心智：已经发生、难以回退）
+      const overKeys = new Set(["7-8", "8-9", "8+", "9+", "9-10", "10+"]);
+      if (overKeys.has(key)) {
+        showBanner(
+          "你已经超过 7 成目标了",
+          "未来一段时间肠胃可能会因为撑而不舒服哦～建议尽快结束用餐。"
+        );
+        return;
+      }
+
+      // 其他情况：不一定要提示
+      hideBanner();
+    }
+
     function makeChoice(key) {
       const label = LABEL[key] || key;
 
@@ -363,24 +471,49 @@
       const timeStr = `${Math.floor(diff / 60)}分${diff % 60}秒`;
       addLog(`<span class="text-orange-500 font-mono">${timeStr}</span> ：${label}`);
 
-      lastKeyForNext = normalizeForNext(key);
+      // 状态推进
+      lastKeyForNext = key;
 
-      // 超级过量：进入终局（停计时+停提醒）
-      if (lastKeyForNext === "11+") {
+      // 目标达成：弹出继续/结束（计时继续）
+      if (key === "7-goal") {
+        goalAchieved = true;
+        applyPostChoiceUX(key);
+
+        clearTimeout(nextCheckTimeout); // 防止背后触发新一轮
+        openGoalSheet();
+        return;
+      }
+
+      // 超过目标（7-8及以上）—从此每次选择面板都有结束按钮
+      const overKeys = new Set(["7-8", "8-9", "8+", "9+", "9-10", "10+"]);
+      if (overKeys.has(key)) {
+        overGoal = true;
+        applyPostChoiceUX(key);
+        scheduleNextCheck(NEXT_CHECK_MS);
+        return;
+      }
+
+      // 超级过量：进入终局（暂停计时/提醒）
+      if (key === "11+") {
         enterOverfullState();
         return;
       }
 
+      // 其他正常情况
+      applyPostChoiceUX(key);
       scheduleNextCheck(NEXT_CHECK_MS);
     }
 
     function enterOverfullState() {
+      superOverfull = true;
+
       clearInterval(timerInterval);
       clearTimeout(nextCheckTimeout);
       clearInterval(reminderInterval);
 
       isWaitingForChoice = false;
       closeChoiceSheet();
+      closeGoalSheet();
 
       eatingScreen.classList.add('hidden');
       overfullScreen.classList.remove('hidden');
@@ -388,14 +521,12 @@
       endBtnLabel.textContent = "长按 1 秒结束（已暂停）";
     }
 
-    // ====== 重置回初始（你要的：长按结束后直接回开始页） ======
+    // ====== 结束与重置（长按后直接回初始） ======
     function resetToStart() {
-      // 清理定时器
       clearInterval(timerInterval);
       clearTimeout(nextCheckTimeout);
       clearInterval(reminderInterval);
 
-      // 状态复位
       startTime = null;
       timerInterval = null;
       nextCheckTimeout = null;
@@ -406,23 +537,98 @@
       hasStarted = false;
       hasEnded = false;
 
-      // UI 复位
+      goalAchieved = false;
+      overGoal = false;
+      superOverfull = false;
+
       closeChoiceSheet();
+      closeGoalSheet();
+
       overfullScreen.classList.add('hidden');
       eatingScreen.classList.add('hidden');
       startScreen.classList.remove('hidden');
 
+      hideBanner();
       timerDisplay.textContent = "已用时：00:00";
 
-      // 清空记录（你如果想保留记录，把下面 3 行注释掉）
+      // 清空记录（如要保留历史，把下面 3 行注释掉）
       logList.innerHTML = "";
       logEmpty.classList.remove('hidden');
       recordLog.scrollTop = 0;
 
-      // 按钮复位
       endBtn.disabled = true;
       endBtnLabel.textContent = "长按 1 秒结束";
-      endProgress.style.transform = "scaleX(0)";
+      setProgress(endProgress, 0);
+      setProgress(sheetEndProgress, 0);
+      setProgress(goalEndProgress, 0);
+      sheetEndWrap.classList.add('hidden');
+    }
+
+    function finalizeEndAndReset() {
+      if (!hasStarted || hasEnded) return;
+      hasEnded = true;
+
+      clearInterval(timerInterval);
+      clearTimeout(nextCheckTimeout);
+      clearInterval(reminderInterval);
+      closeChoiceSheet();
+      closeGoalSheet();
+      isWaitingForChoice = false;
+
+      const diff = startTime ? Math.floor((Date.now() - startTime.getTime()) / 1000) : 0;
+      const timeStr = `${Math.floor(diff / 60)}分${diff % 60}秒`;
+      addLog(`<span class="text-gray-400 font-mono">${timeStr}</span> ：结束用餐 ✅`);
+
+      setTimeout(resetToStart, 150);
+    }
+
+    // ====== 通用长按组件（底部/面板/目标弹层复用） ======
+    function setProgress(el, p) {
+      const clamped = Math.max(0, Math.min(1, p));
+      el.style.transform = `scaleX(${clamped})`;
+    }
+
+    function bindLongPress({btn, progressEl, labelEl, idleText, holdingText, onComplete}) {
+      let pressing = false;
+      let t = null;
+
+      function startPress() {
+        if (btn.disabled) return;
+        pressing = true;
+        labelEl.textContent = holdingText;
+        softVibrate();
+
+        const start = Date.now();
+        setProgress(progressEl, 0);
+
+        t = setInterval(() => {
+          const elapsed = Date.now() - start;
+          const p = elapsed / LONG_PRESS_MS;
+          setProgress(progressEl, p);
+          if (elapsed >= LONG_PRESS_MS) {
+            clearInterval(t);
+            t = null;
+            pressing = false;
+            setProgress(progressEl, 1);
+            onComplete();
+          }
+        }, 16);
+      }
+
+      function cancelPress() {
+        if (!pressing) return;
+        pressing = false;
+        if (t) { clearInterval(t); t = null; }
+        setProgress(progressEl, 0);
+        labelEl.textContent = idleText;
+      }
+
+      btn.addEventListener('touchstart', (e) => { e.preventDefault(); startPress(); }, { passive: false });
+      btn.addEventListener('touchend', cancelPress);
+      btn.addEventListener('touchcancel', cancelPress);
+      btn.addEventListener('mousedown', startPress);
+      btn.addEventListener('mouseup', cancelPress);
+      btn.addEventListener('mouseleave', cancelPress);
     }
 
     // ====== 开始 ======
@@ -436,98 +642,31 @@
 
       startScreen.classList.add('hidden');
       eatingScreen.classList.remove('hidden');
+      overfullScreen.classList.add('hidden');
 
-      // ✅ 先启动计时（不会被音频失败影响）
+      // 先启动计时
       clearInterval(timerInterval);
       timerInterval = setInterval(updateTimer, 1000);
       updateTimer();
 
-      // ✅ 解锁音频（必须由用户点击触发，安卓更稳）
+      // 解锁音频（必须用户点击触发）
       await unlockAudio();
 
-      // ✅ 试播一下（失败也不影响）
       try { playChime(); } catch (_) {}
 
       scheduleNextCheck(FIRST_CHECK_MS);
       endBtn.disabled = false;
 
       addLog(`<span class="text-gray-400 font-mono">00分00秒</span> ：开始用餐`);
+      hideBanner();
     }
 
-    // ====== 长按结束（无弹窗） ======
-    function setProgress(p) {
-      const clamped = Math.max(0, Math.min(1, p));
-      endProgress.style.transform = `scaleX(${clamped})`;
-    }
-
-    function finalizeEndAndReset() {
-      if (!hasStarted || hasEnded) return;
-      hasEnded = true;
-
-      // 停掉一切
-      clearInterval(timerInterval);
-      clearTimeout(nextCheckTimeout);
-      clearInterval(reminderInterval);
-      closeChoiceSheet();
-      isWaitingForChoice = false;
-
-      // 记录结束
-      const diff = startTime ? Math.floor((Date.now() - startTime.getTime()) / 1000) : 0;
-      const timeStr = `${Math.floor(diff / 60)}分${diff % 60}秒`;
-      addLog(`<span class="text-gray-400 font-mono">${timeStr}</span> ：结束用餐 ✅`);
-
-      // 直接回初始（给一点点视觉缓冲）
-      setTimeout(resetToStart, 150);
-    }
-
-    function startPress() {
-      if (endBtn.disabled) return;
-      if (!hasStarted || hasEnded) return;
-
-      pressing = true;
-      endBtnLabel.textContent = "继续按住…";
-      softVibrate();
-
-      const start = Date.now();
-      setProgress(0);
-
-      pressTimer = setInterval(() => {
-        const elapsed = Date.now() - start;
-        const p = elapsed / LONG_PRESS_MS;
-        setProgress(p);
-        if (elapsed >= LONG_PRESS_MS) {
-          clearInterval(pressTimer);
-          pressTimer = null;
-          pressing = false;
-          setProgress(1);
-          finalizeEndAndReset();
-        }
-      }, 16);
-    }
-
-    function cancelPress() {
-      if (!pressing) return;
-      pressing = false;
-
-      if (pressTimer) {
-        clearInterval(pressTimer);
-        pressTimer = null;
-      }
-
-      setProgress(0);
-      endBtnLabel.textContent = overfullScreen.classList.contains('hidden')
-        ? "长按 1 秒结束"
-        : "长按 1 秒结束（已暂停）";
-    }
-
-    // 绑定：touch/mouse 都兼容
-    endBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startPress(); }, { passive: false });
-    endBtn.addEventListener('touchend', cancelPress);
-    endBtn.addEventListener('touchcancel', cancelPress);
-
-    endBtn.addEventListener('mousedown', startPress);
-    endBtn.addEventListener('mouseup', cancelPress);
-    endBtn.addEventListener('mouseleave', cancelPress);
+    // ====== 目标达成弹层按钮 ======
+    continueBtn.addEventListener('click', () => {
+      closeGoalSheet();
+      // 继续后：下一轮正常提醒
+      scheduleNextCheck(NEXT_CHECK_MS);
+    });
 
     // ====== 折叠记录区 ======
     let logCollapsed = false;
@@ -543,14 +682,39 @@
       }
     });
 
-    // 绑定开始按钮
+    // ====== 绑定按钮 ======
     startBtn.addEventListener('click', startEating);
 
-    // 初始化：结束按钮禁用
+    // 底部结束（全程都可用）
     endBtn.disabled = true;
+    bindLongPress({
+      btn: endBtn,
+      progressEl: endProgress,
+      labelEl: endBtnLabel,
+      idleText: "长按 1 秒结束",
+      holdingText: "继续按住…",
+      onComplete: finalizeEndAndReset
+    });
+
+    // 选择面板内的结束（超过目标后出现）
+    bindLongPress({
+      btn: sheetEndBtn,
+      progressEl: sheetEndProgress,
+      labelEl: sheetEndLabel,
+      idleText: "长按 1 秒结束用餐",
+      holdingText: "继续按住…",
+      onComplete: finalizeEndAndReset
+    });
+
+    // 目标达成弹层内的结束
+    bindLongPress({
+      btn: goalEndBtn,
+      progressEl: goalEndProgress,
+      labelEl: goalEndLabel,
+      idleText: "长按 1 秒结束吃饭",
+      holdingText: "继续按住…",
+      onComplete: finalizeEndAndReset
+    });
   </script>
 </body>
 </html>
-
-
-
