@@ -11,125 +11,141 @@
     .btn-bounce:active { transform: scale(0.97); }
     .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
     .no-select { -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color: transparent; }
-    .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .fade-in { animation: fadeIn 0.6s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .breath { animation: breath 3s ease-in-out infinite; }
+    @keyframes breath { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
     select { -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1em; }
   </style>
 </head>
 
-<body class="bg-gray-50 min-h-screen font-sans no-select">
+<body class="bg-[#FFFAF2] min-h-screen font-sans no-select">
 
-  <header id="topHeader" class="hidden sticky top-0 z-30 bg-white/95 backdrop-blur border-b">
+  <header id="topHeader" class="hidden sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-orange-50">
     <div class="px-4 pt-3 pb-3 flex items-center justify-between">
-      <div class="text-sm font-semibold text-gray-700">用餐觉察记录</div>
-      <button id="toggleLogBtn" class="text-sm text-orange-600 font-medium btn-bounce px-3 py-2 rounded-lg">折叠</button>
+      <div class="text-xs font-bold text-gray-400 tracking-widest">觉察日记</div>
+      <button id="toggleLogBtn" class="text-xs text-orange-500 font-bold border border-orange-100 px-3 py-1 rounded-full">折叠</button>
     </div>
-    <div id="recordLog" class="mt-0 max-h-32 overflow-y-auto text-sm text-gray-600 px-4 pb-3">
-      <ul id="logList" class="space-y-1 border-l-2 border-orange-100 ml-1"></ul>
-      <div id="logEmpty" class="text-gray-400 py-1 italic text-xs text-center">正在聆听身体的声音...</div>
+    <div id="recordLog" class="max-h-32 overflow-y-auto text-sm text-gray-600 px-4 pb-3">
+      <ul id="logList" class="space-y-1 border-l border-orange-100 ml-1"></ul>
+      <div id="logEmpty" class="text-gray-300 py-1 italic text-[10px] text-center">在这里记录身体的细微变化...</div>
     </div>
   </header>
 
   <main class="px-5 pt-6 pb-28">
-    <section id="startScreen" class="text-center space-y-6 pt-6 fade-in">
-      <div class="text-7xl">🍱</div>
-      <div class="space-y-1">
-        <h1 class="text-2xl font-black text-gray-900 italic">饮食觉察助手</h1>
-        <p class="text-gray-400 text-xs">目标：7成饱 · 用心感受每一口</p>
+    <section id="startScreen" class="text-center space-y-6 pt-10 fade-in">
+      <div class="text-7xl">🍲</div>
+      <div class="space-y-2">
+        <h1 class="text-2xl font-black text-gray-800 tracking-tight">饮食觉察助手</h1>
+        <p class="text-gray-400 text-xs font-medium">目标：7成饱 · 感受食物的能量</p>
       </div>
 
-      <div class="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 space-y-5 max-w-sm mx-auto text-left">
+      <div class="bg-white/60 rounded-[2rem] p-6 shadow-sm border border-orange-50/50 space-y-5 max-w-sm mx-auto text-left">
         <div>
-          <label class="text-[10px] font-bold text-gray-400 mb-2 block uppercase tracking-wider ml-1">首次提醒 (开始后)</label>
+          <label class="text-[10px] font-bold text-orange-300 mb-2 block uppercase ml-1">首次提醒时间</label>
           <div class="flex gap-2">
-            <select id="firstMin" class="flex-1 bg-gray-50 border-none rounded-xl px-3 py-3 text-sm font-bold text-gray-700"></select>
-            <select id="firstSec" class="flex-1 bg-gray-50 border-none rounded-xl px-3 py-3 text-sm font-bold text-gray-700"></select>
+            <select id="firstMin" class="flex-1 bg-white border border-orange-50 rounded-2xl px-3 py-3 text-sm font-bold text-gray-700"></select>
+            <select id="firstSec" class="flex-1 bg-white border border-orange-50 rounded-2xl px-3 py-3 text-sm font-bold text-gray-700"></select>
           </div>
         </div>
         <div>
-          <label class="text-[10px] font-bold text-gray-400 mb-2 block uppercase tracking-wider ml-1">后续间隔 (选择后)</label>
+          <label class="text-[10px] font-bold text-orange-300 mb-2 block uppercase ml-1">后续提醒间隔</label>
           <div class="flex gap-2">
-            <select id="nextMin" class="flex-1 bg-gray-50 border-none rounded-xl px-3 py-3 text-sm font-bold text-gray-700"></select>
-            <select id="nextSec" class="flex-1 bg-gray-50 border-none rounded-xl px-3 py-3 text-sm font-bold text-gray-700"></select>
+            <select id="nextMin" class="flex-1 bg-white border border-orange-50 rounded-2xl px-3 py-3 text-sm font-bold text-gray-700"></select>
+            <select id="nextSec" class="flex-1 bg-white border border-orange-50 rounded-2xl px-3 py-3 text-sm font-bold text-gray-700"></select>
           </div>
         </div>
       </div>
 
-      <button id="startBtn" class="btn-bounce bg-orange-500 text-white w-full max-w-xs h-16 mx-auto rounded-full text-lg font-black shadow-xl shadow-orange-100 mt-2">
-        开始吃饭
+      <button id="startBtn" class="btn-bounce bg-orange-500 text-white w-full max-w-xs h-16 mx-auto rounded-full text-lg font-black shadow-2xl shadow-orange-200 mt-4">
+        开始用餐
       </button>
     </section>
 
     <section id="eatingScreen" class="hidden text-center space-y-8 fade-in">
-      <div id="timerDisplay" class="font-mono text-5xl font-extralight text-orange-300">00:00</div>
+      <div id="timerDisplay" class="font-mono text-5xl font-thin text-orange-200 tracking-tighter">00:00</div>
       <div class="relative w-48 h-48 mx-auto bg-white rounded-full flex items-center justify-center shadow-inner eating-bg">
-        <div class="text-7xl animate-bounce duration-[2000ms]">🥢</div>
+        <div class="text-7xl animate-bounce duration-[3000ms]">🥢</div>
       </div>
-      <div id="statusBanner" class="hidden mx-auto max-w-sm rounded-3xl border-2 border-orange-50 bg-white p-6 shadow-sm text-left fade-in">
-        <div id="statusTitle" class="text-orange-600 font-black text-base"></div>
-        <div id="statusText" class="mt-1 text-sm font-medium text-gray-600 leading-relaxed"></div>
+      <div id="statusBanner" class="hidden mx-auto max-w-sm rounded-[2rem] border border-orange-100 bg-white/80 p-6 shadow-sm text-left fade-in">
+        <div id="statusTitle" class="text-orange-500 font-black text-sm mb-1 italic"></div>
+        <div id="statusText" class="text-gray-600 text-xs font-medium leading-relaxed"></div>
       </div>
     </section>
 
     <section id="overfullScreen" class="hidden text-center space-y-8 pt-10 fade-in">
-      <div class="text-8xl animate-pulse">⚠️</div>
-      <div class="text-3xl font-black text-gray-900 italic">超级过量</div>
-      <p class="text-gray-700 text-lg font-medium leading-relaxed px-6">身体正在发出求救信号。<br/>请立即停止，静坐休息。</p>
+      <div class="text-8xl">🌬️</div>
+      <div class="text-3xl font-black text-gray-800 italic tracking-tighter">超级过量</div>
+      <p class="text-gray-500 text-sm font-medium leading-relaxed px-6">
+        请给肠胃一点温柔，<br/>尝试深呼吸 3 次，静坐休息。
+      </p>
     </section>
 
-    <section id="endTransitionScreen" class="hidden text-center space-y-10 pt-20 fade-in">
-      <div class="text-8xl">✨</div>
-      <div class="space-y-4">
-        <div class="text-2xl font-black text-gray-900">这一餐辛苦了</div>
-        <div id="endTransitionText" class="text-orange-600 text-2xl font-black italic"></div>
-        <p class="text-gray-400 text-sm italic">5秒后自动重置...</p>
+    <section id="endTransitionScreen" class="hidden text-center pt-24 fade-in">
+      <div class="space-y-8">
+        <div class="text-xl font-bold text-gray-400 tracking-widest">恭喜你</div>
+        <div class="text-2xl font-black text-gray-800">度过了人生中的一餐</div>
+        
+        <div class="py-10">
+          <div class="text-xs font-bold text-orange-300 uppercase tracking-widest mb-4">本次状态</div>
+          <div id="endTransitionText" class="text-5xl font-black text-orange-500 tracking-tighter drop-shadow-sm"></div>
+        </div>
+
+        <div class="pt-8 space-y-4">
+          <div class="text-2xl font-black text-[#4ADE80] italic breath">愿你越来越幸福~</div>
+          <div class="text-[10px] text-gray-300 font-bold uppercase tracking-widest pt-12">正在重置状态...</div>
+        </div>
       </div>
     </section>
   </main>
 
   <div id="choiceSheet" class="hidden fixed inset-0 z-40">
-    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
-    <div class="absolute left-0 right-0 bottom-0 bg-white rounded-t-[2.5rem] shadow-2xl safe-bottom p-6">
-        <div class="text-xl font-black text-gray-900 mb-6 text-center">🥘 几成饱了？</div>
-        <div id="optionsContainer" class="grid grid-cols-1 gap-3 max-h-[45vh] overflow-y-auto"></div>
-        <div id="sheetEndWrap" class="hidden mt-6 pt-4 border-t border-gray-100 text-center">
-           <button id="sheetEndBtn" class="relative overflow-hidden w-full bg-orange-50 text-orange-800 py-4 rounded-2xl font-bold italic text-sm">
-             <div id="sheetEndProgress" class="absolute inset-0 bg-orange-200" style="transform: scaleX(0); transform-origin: left; transition: transform 80ms linear;"></div>
-             <span class="relative">长按此处提前结束</span>
+    <div class="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
+    <div class="absolute left-0 right-0 bottom-0 bg-white rounded-t-[3rem] shadow-2xl safe-bottom p-8">
+        <div class="text-center mb-8">
+          <div class="text-gray-400 font-bold text-[10px] uppercase tracking-widest mb-1">觉察时刻</div>
+          <div class="text-xl font-black text-gray-800">你现在几成饱了？</div>
+        </div>
+        <div id="optionsContainer" class="grid grid-cols-1 gap-3 max-h-[40vh] overflow-y-auto pr-1"></div>
+        <div id="sheetEndWrap" class="hidden mt-6 pt-4 border-t border-gray-50 text-center">
+           <button id="sheetEndBtn" class="relative overflow-hidden w-full bg-orange-50/50 text-orange-500 py-4 rounded-2xl font-bold italic text-xs">
+             <div id="sheetEndProgress" class="absolute inset-0 bg-orange-100" style="transform: scaleX(0); transform-origin: left; transition: transform 80ms linear;"></div>
+             <span class="relative tracking-widest">长按提前结束用餐</span>
            </button>
         </div>
     </div>
   </div>
 
   <div id="goalSheet" class="hidden fixed inset-0 z-50">
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-md"></div>
-    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[85%] bg-white rounded-[2.5rem] p-8 text-center space-y-6">
-      <div class="text-5xl mb-4">🎯</div>
-      <div class="text-2xl font-black text-gray-900">达成 7 成饱！</div>
-      <p class="text-gray-600 text-sm font-medium leading-relaxed">这是身体最轻盈的状态。<br/>你想继续，还是停在这里？</p>
-      <button id="continueBtn" class="w-full bg-orange-500 text-white py-5 rounded-2xl font-black shadow-lg">继续用餐</button>
-      <button id="goalEndBtn" class="relative overflow-hidden w-full bg-gray-100 text-gray-900 py-5 rounded-2xl font-black">
-         <div id="goalEndProgress" class="absolute inset-0 bg-gray-200" style="transform: scaleX(0); transform-origin: left; transition: transform 80ms linear;"></div>
-         <span class="relative">长按 1 秒结束</span>
-      </button>
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
+    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[88%] bg-white rounded-[3rem] p-10 text-center shadow-2xl">
+      <div class="text-6xl mb-6">🎯</div>
+      <div class="text-2xl font-black text-gray-800 mb-2">达成 7 成饱！</div>
+      <p class="text-gray-400 text-xs font-bold mb-10 leading-relaxed">这是身体最舒适的状态，<br/>建议在此刻停下。</p>
+      <div class="space-y-4">
+        <button id="continueBtn" class="w-full bg-orange-500 text-white py-5 rounded-3xl font-black shadow-xl">继续用餐</button>
+        <button id="goalEndBtn" class="relative overflow-hidden w-full bg-gray-50 text-gray-400 py-5 rounded-3xl font-black">
+           <div id="goalEndProgress" class="absolute inset-0 bg-orange-50" style="transform: scaleX(0); transform-origin: left; transition: transform 80ms linear;"></div>
+           <span class="relative">长按 1 秒结束</span>
+        </button>
+      </div>
     </div>
   </div>
 
-  <div id="bottomBar" class="hidden fixed left-0 right-0 bottom-0 z-30 bg-white/95 backdrop-blur border-t safe-bottom">
+  <div id="bottomBar" class="hidden fixed left-0 right-0 bottom-0 z-30 bg-white/80 backdrop-blur-md safe-bottom border-t border-orange-50">
     <div class="px-5 py-4 flex justify-center">
-      <button id="endBtn" class="relative overflow-hidden w-full max-w-sm bg-white border-2 border-gray-100 py-4 rounded-full font-black text-gray-400 shadow-sm">
+      <button id="endBtn" class="relative overflow-hidden w-full max-w-xs bg-white border border-gray-100 py-4 rounded-full font-black text-gray-300">
         <div id="endProgress" class="absolute inset-0 bg-orange-50" style="transform: scaleX(0); transform-origin: left; transition: transform 80ms linear;"></div>
-        <span id="endBtnLabel" class="relative">长按 1 秒结束</span>
+        <span id="endBtnLabel" class="relative tracking-widest">长按 1 秒结束</span>
       </button>
     </div>
   </div>
 
   <script>
-    /* ================= 核心配置与存储 ================= */
     const MS_PER_MIN = 60000;
     const MS_PER_SEC = 1000;
-    const STORAGE_KEY_FIRST = 'eating_v4_first';
-    const STORAGE_KEY_NEXT = 'eating_v4_next';
+    const STORAGE_KEY_FIRST = 'eating_v5_first';
+    const STORAGE_KEY_NEXT = 'eating_v5_next';
 
     let configFirst = parseInt(localStorage.getItem(STORAGE_KEY_FIRST)) || 160000;
     let configNext = parseInt(localStorage.getItem(STORAGE_KEY_NEXT)) || 110000;
@@ -140,7 +156,6 @@
 
     const LABEL = { "<5": "5成饱以下", "5-6": "5－6成", "6-7": "6－7成", "7-goal": "7成饱 (达标)", "7-8": "7－8成", "8-9": "8－9成", "9-10": "9-10成", "10+": "10成过量", "11+": "超级过量" };
 
-    /* ================= 初始化选择器 ================= */
     function populateSelects() {
       const fMin = document.getElementById('firstMin'), fSec = document.getElementById('firstSec');
       const nMin = document.getElementById('nextMin'), nSec = document.getElementById('nextSec');
@@ -159,7 +174,6 @@
     }
     populateSelects();
 
-    /* ================= 音频引擎 ================= */
     function initAudio() {
       if (audioCtx) return;
       const AC = window.AudioContext || window.webkitAudioContext;
@@ -185,7 +199,6 @@
       const n = audioCtx.currentTime; [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => playTone(f, n + i * 0.15, 0.6, 0.5, "sine"));
     }
 
-    /* ================= 业务核心 ================= */
     function startEating() {
       if (hasStarted) return;
       initAudio(); if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -199,7 +212,7 @@
         document.getElementById('timerDisplay').textContent = `${String(Math.floor(d/60)).padStart(2,'0')}:${String(d%60).padStart(2,'0')}`;
       }, 1000);
       nextCheckTimeout = setTimeout(triggerCheck, configFirst);
-      playCheckSound(); addLog(`开始用餐 🥢`);
+      playCheckSound(); addLog(`用餐开始 🥘`);
     }
 
     function triggerCheck() {
@@ -221,7 +234,7 @@
       const container = document.getElementById('optionsContainer'); container.innerHTML = '';
       getOpts(lastKeyForNext).forEach(key => {
         const btn = document.createElement('button');
-        btn.className = "bg-white border-2 border-orange-100 py-4 rounded-2xl font-black text-gray-800 active:bg-orange-500 active:text-white transition-all";
+        btn.className = "bg-white border border-gray-100 py-4 rounded-2xl font-black text-gray-700 active:bg-orange-500 active:text-white transition-all";
         btn.textContent = LABEL[key]; btn.onclick = () => selectOption(key); container.appendChild(btn);
       });
     }
@@ -231,18 +244,16 @@
       document.getElementById('choiceSheet').classList.add('hidden'); clearInterval(reminderInterval);
       const diff = Math.floor((Date.now() - startTime) / 1000);
       addLog(`${Math.floor(diff/60)}分${diff%60}秒 ：${LABEL[key]}`);
-
       if (key === "7-goal") {
         document.getElementById('goalSheet').classList.remove('hidden');
-        showBanner("已达成 7 成目标 🎯", "这是最轻盈的状态，建议慢慢停下。");
+        showBanner("已达成 7 成目标 🎯", "细细品味当下的轻盈感。");
       } else if (key === "11+") {
         hasEnded = true; clearInterval(timerInterval); clearTimeout(nextCheckTimeout);
         document.getElementById('eatingScreen').classList.add('hidden'); document.getElementById('overfullScreen').classList.remove('hidden');
       } else {
-        // Banner 温馨提醒逻辑回归
-        if (key === "6-7") showBanner("快到 7 成饱了哦！", "听听身体的声音，尝试减慢速度～");
+        if (key === "6-7") showBanner("快到 7 成饱了哦！", "放慢节奏，聆听身体的回应。");
         else if (["7-8", "8-9", "9-10", "10+"].includes(key)) {
-            showBanner("已超过预定目标", "胃部压力正在增大，建议及时结束用餐。");
+            showBanner("已超过预定目标", "胃部需要休息，建议慢慢停下。");
             document.getElementById('sheetEndWrap').classList.remove('hidden');
         }
         clearTimeout(nextCheckTimeout); nextCheckTimeout = setTimeout(triggerCheck, configNext);
@@ -256,22 +267,10 @@
     }
 
     function addLog(text) {
-      const li = document.createElement('li'); li.className = "pl-2 py-1 text-xs font-medium text-gray-500 border-l-2 border-orange-200 mb-1";
+      const li = document.createElement('li'); li.className = "pl-2 py-1 text-[10px] font-bold text-gray-400 mb-1 tracking-tighter";
       li.innerHTML = text; document.getElementById('logList').appendChild(li);
       document.getElementById('logEmpty').classList.add('hidden');
       document.getElementById('recordLog').scrollTop = document.getElementById('recordLog').scrollHeight;
-    }
-
-    function logicReset() {
-      clearInterval(timerInterval); clearTimeout(nextCheckTimeout); clearInterval(reminderInterval);
-      startTime = null; lastKeyForNext = ""; lastChoiceLabel = "";
-      isWaitingForChoice = false; hasStarted = false; hasEnded = false;
-      ['eatingScreen', 'overfullScreen', 'goalSheet', 'choiceSheet', 'endTransitionScreen', 'topHeader', 'bottomBar', 'statusBanner'].forEach(id => {
-        document.getElementById(id).classList.add('hidden');
-      });
-      document.getElementById('startScreen').classList.remove('hidden');
-      document.getElementById('logList').innerHTML = ""; document.getElementById('logEmpty').classList.remove('hidden');
-      document.getElementById('timerDisplay').textContent = "00:00";
     }
 
     function finalize() {
@@ -280,14 +279,21 @@
       playSuccessMusic();
       ['eatingScreen', 'overfullScreen', 'goalSheet', 'choiceSheet', 'topHeader', 'bottomBar'].forEach(id => document.getElementById(id).classList.add('hidden'));
       document.getElementById('endTransitionScreen').classList.remove('hidden');
-      document.getElementById('endTransitionText').textContent = `最后觉察：${lastChoiceLabel || '进行中'}`;
-      setTimeout(logicReset, 5000);
+      document.getElementById('endTransitionText').textContent = `${lastChoiceLabel || '进行中'}`;
+      setTimeout(() => {
+        hasStarted = hasEnded = false; lastKeyForNext = ""; lastChoiceLabel = "";
+        document.getElementById('endTransitionScreen').classList.add('hidden');
+        document.getElementById('startScreen').classList.remove('hidden');
+        document.getElementById('logList').innerHTML = ""; document.getElementById('logEmpty').classList.remove('hidden');
+        document.getElementById('timerDisplay').textContent = "00:00";
+        document.getElementById('statusBanner').classList.add('hidden');
+      }, 5000);
     }
 
-    /* ================= 交互绑定 ================= */
     function bindLP(btn, progressEl, onComplete) {
       let t = null;
-      const begin = (e) => { e.preventDefault(); let s = Date.now(); if('vibrate' in navigator) navigator.vibrate(20);
+      const begin = (e) => { 
+        e.preventDefault(); let s = Date.now(); if('vibrate' in navigator) navigator.vibrate(20);
         t = setInterval(() => { const p = (Date.now() - s) / 1000; progressEl.style.transform = `scaleX(${Math.min(p, 1)})`; if(p >= 1) { clearInterval(t); onComplete(); } }, 20); };
       const stop = () => { clearInterval(t); progressEl.style.transform = 'scaleX(0)'; };
       btn.addEventListener('touchstart', begin); btn.addEventListener('touchend', stop);
