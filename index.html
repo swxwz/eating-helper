@@ -151,6 +151,7 @@
 
     let startTime = null, timerInterval = null, nextCheckTimeout = null, reminderInterval = null;
     let lastKeyForNext = "", lastChoiceLabel = "", isWaitingForChoice = false, hasStarted = false, hasEnded = false;
+    let passedGoal = false; // ✅ 一旦选择7-8或更高，就锁死7-goal不再出现
     let audioCtx = null, compressor = null, masterGain = null;
 
     const LABEL = { "<5": "5成饱以下", "5-6": "5－6成", "6-7": "6－7成", "7-goal": "7成饱 (达标)", "7-8": "7－8成", "8-9": "8－9成", "9-10": "9-10成", "10+": "10成过量", "11+": "超级过量" };
@@ -228,6 +229,7 @@
       if (hasStarted) return;
       initAudio(); requestWakeLock(); 
       hasStarted = true; startTime = new Date();
+      passedGoal = false;
       document.getElementById('startScreen').classList.add('hidden');
       document.getElementById('eatingScreen').classList.remove('hidden');
       document.getElementById('topHeader').classList.remove('hidden');
@@ -251,26 +253,26 @@
 
     function renderOptions() {
         const getOpts = (k) => {
-          if (!k || k === "<5") return ["<5", "5-6", "6-7", "7-goal", "7-8"];
+          // ===== 还没超过7成：允许出现 7-goal =====
+          if (!passedGoal) {
+            if (!k || k === "<5") return ["<5", "5-6", "6-7", "7-goal", "7-8"];
+            if (k === "5-6")      return ["5-6", "6-7", "7-goal", "7-8", "8-9"];
+            if (k === "6-7")      return ["6-7", "7-goal", "7-8", "8-9", "9-10"];
+            if (k === "7-goal")   return ["7-goal", "7-8", "8-9", "9-10", "10+", "11+"]; // 达标后继续吃，仍可再次点达标
+            return ["7-goal", "7-8", "8-9", "9-10", "10+", "11+"];
+          }
         
-          if (k === "5-6") return ["5-6", "6-7", "7-goal", "7-8", "8-9"];
-        
-          if (k === "6-7") return ["6-7", "7-goal", "7-8", "8-9", "9-10"];
-        
-          // ✅ 关键：即使上一轮选了 7-8，也仍然给 7-goal（允许“回到达标”）
-          if (k === "7-goal") return ["7-goal", "7-8", "8-9", "9-10", "10+", "11+"];
-        
-          if (k === "7-8") return ["7-goal", "7-8", "8-9", "9-10", "10+", "11+"];
-        
-          // 更高也同样允许回选 7-goal（你要是不想允许，把下面每行里的 "7-goal" 去掉即可）
-          if (k === "8-9") return ["7-goal", "8-9", "9-10", "10+", "11+"];
-        
-          if (k === "9-10") return ["7-goal", "9-10", "10+", "11+"];
-        
-          if (k === "10+") return ["7-goal", "10+", "11+"];
-        
-          return ["7-goal", "7-8", "8-9", "9-10", "10+", "11+"];
+          // ===== 已经超过7成：彻底移除 7-goal =====
+          if (!k || k === "<5") return ["<5", "5-6", "6-7", "7-8"];
+          if (k === "5-6")      return ["5-6", "6-7", "7-8", "8-9"];
+          if (k === "6-7")      return ["6-7", "7-8", "8-9", "9-10"];
+          if (k === "7-8")      return ["7-8", "8-9", "9-10", "10+", "11+"];
+          if (k === "8-9")      return ["8-9", "9-10", "10+", "11+"];
+          if (k === "9-10")     return ["9-10", "10+", "11+"];
+          if (k === "10+")      return ["10+", "11+"];
+          return ["7-8", "8-9", "9-10", "10+", "11+"];
         };
+
 
       const container = document.getElementById('optionsContainer'); container.innerHTML = '';
       getOpts(lastKeyForNext).forEach(key => {
@@ -282,6 +284,11 @@
 
     function selectOption(key) {
       lastKeyForNext = key; lastChoiceLabel = LABEL[key]; isWaitingForChoice = false;
+            // ✅ 一旦超过7成目标，就不再允许出现7-goal
+      if (["7-8", "8-9", "9-10", "10+", "11+"].includes(key)) {
+        passedGoal = true;
+      }
+
       document.getElementById('choiceSheet').classList.add('hidden'); clearInterval(reminderInterval);
       const diff = Math.floor((Date.now() - startTime) / 1000);
       addLog(`${Math.floor(diff/60)}分${diff%60}秒 ：${LABEL[key]}`);
