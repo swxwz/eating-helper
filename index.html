@@ -13,58 +13,49 @@
     .no-select { -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color: transparent; }
     .fade-in { animation: fadeIn 0.4s ease-out forwards; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    select { -webkit-appearance: none; appearance: none; }
+    select { -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1em; }
   </style>
 </head>
 
 <body class="bg-gray-50 min-h-screen font-sans no-select">
 
   <header id="topHeader" class="hidden sticky top-0 z-30 bg-white/95 backdrop-blur border-b">
-    <div class="px-4 pt-3 pb-3">
-      <div class="flex items-center justify-between">
-        <div class="text-sm font-semibold text-gray-700">用餐觉察记录</div>
-        <button id="toggleLogBtn" class="text-sm text-orange-600 font-medium btn-bounce px-3 py-2 rounded-lg">折叠</button>
-      </div>
-      <div id="recordLog" class="mt-2 max-h-32 overflow-y-auto text-sm text-gray-600">
-        <ul id="logList" class="space-y-1"></ul>
-        <div id="logEmpty" class="text-gray-400 py-2 italic text-xs text-center">正在聆听身体的声音...</div>
-      </div>
+    <div class="px-4 pt-3 pb-3 flex items-center justify-between">
+      <div class="text-sm font-semibold text-gray-700">用餐觉察记录</div>
+      <button id="toggleLogBtn" class="text-sm text-orange-600 font-medium btn-bounce px-3 py-2 rounded-lg">折叠</button>
+    </div>
+    <div id="recordLog" class="mt-0 max-h-32 overflow-y-auto text-sm text-gray-600 px-4 pb-3">
+      <ul id="logList" class="space-y-1"></ul>
+      <div id="logEmpty" class="text-gray-400 py-1 italic text-xs text-center">正在聆听身体的声音...</div>
     </div>
   </header>
 
   <main class="px-5 pt-6 pb-28">
-    <section id="startScreen" class="text-center space-y-6 pt-10 fade-in">
+    <section id="startScreen" class="text-center space-y-6 pt-6 fade-in">
       <div class="text-7xl">🍱</div>
-      <div class="space-y-2">
+      <div class="space-y-1">
         <h1 class="text-2xl font-black text-gray-900">饮食觉察助手</h1>
-        <p class="text-gray-400 text-xs">目标：7成饱 · 听从身体的声音</p>
+        <p class="text-gray-400 text-xs">目标：7成饱 · 细嚼慢咽</p>
       </div>
 
-      <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 space-y-4 max-w-xs mx-auto text-left">
+      <div class="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 space-y-5 max-w-sm mx-auto text-left">
         <div>
-          <label class="text-xs font-bold text-gray-400 mb-2 block ml-1">首次提醒时间</label>
-          <select id="firstTimeSet" class="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-200">
-            <option value="10000">10秒 (测试用)</option>
-            <option value="60000">1分钟</option>
-            <option value="120000">2分钟</option>
-            <option value="160000">2分40秒 (推荐)</option>
-            <option value="180000">3分钟</option>
-            <option value="300000">5分钟</option>
-          </select>
+          <label class="text-[10px] font-bold text-gray-400 mb-2 block uppercase tracking-wider ml-1">首次提醒 (开始后)</label>
+          <div class="flex gap-2">
+            <select id="firstMin" class="flex-1 bg-gray-50 border-none rounded-xl px-3 py-3 text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-200"></select>
+            <select id="firstSec" class="flex-1 bg-gray-50 border-none rounded-xl px-3 py-3 text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-200"></select>
+          </div>
         </div>
         <div>
-          <label class="text-xs font-bold text-gray-400 mb-2 block ml-1">后续提醒间隔</label>
-          <select id="nextTimeSet" class="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-200">
-            <option value="5000">5秒 (测试用)</option>
-            <option value="30000">30秒</option>
-            <option value="60000">1分钟</option>
-            <option value="110000">1分50秒 (推荐)</option>
-            <option value="120000">2分钟</option>
-          </select>
+          <label class="text-[10px] font-bold text-gray-400 mb-2 block uppercase tracking-wider ml-1">后续间隔 (选择后)</label>
+          <div class="flex gap-2">
+            <select id="nextMin" class="flex-1 bg-gray-50 border-none rounded-xl px-3 py-3 text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-200"></select>
+            <select id="nextSec" class="flex-1 bg-gray-50 border-none rounded-xl px-3 py-3 text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-200"></select>
+          </div>
         </div>
       </div>
 
-      <button id="startBtn" class="btn-bounce bg-orange-500 text-white w-64 h-20 mx-auto rounded-full text-xl font-black shadow-xl shadow-orange-100 mt-4">
+      <button id="startBtn" class="btn-bounce bg-orange-500 text-white w-full max-w-xs h-16 mx-auto rounded-full text-lg font-black shadow-xl shadow-orange-100 mt-2">
         开始吃饭
       </button>
     </section>
@@ -80,26 +71,14 @@
       </div>
     </section>
 
-    <section id="overfullScreen" class="hidden text-center space-y-8 pt-10 fade-in">
-      <div class="text-8xl animate-pulse">⚠️</div>
-      <div class="text-3xl font-black text-gray-900 italic">超级过量</div>
-      <p class="text-gray-700 text-lg font-medium leading-relaxed">请停止进食，深呼吸。</p>
-    </section>
-
-    <section id="endTransitionScreen" class="hidden text-center space-y-10 pt-20 fade-in">
-      <div class="text-8xl">✨</div>
-      <div class="space-y-4">
-        <div class="text-2xl font-black text-gray-900">这一餐辛苦了</div>
-        <div id="endTransitionText" class="text-orange-600 text-2xl font-black italic"></div>
-        <p class="text-gray-400 text-xs italic">5秒后自动重置...</p>
-      </div>
-    </section>
+    <section id="overfullScreen" class="hidden text-center space-y-8 pt-10 fade-in"><div class="text-8xl animate-pulse">⚠️</div><div class="text-3xl font-black text-gray-900 italic">超级过量</div></section>
+    <section id="endTransitionScreen" class="hidden text-center space-y-10 pt-20 fade-in"><div class="text-8xl">✨</div><div id="endTransitionText" class="text-orange-600 text-2xl font-black italic"></div></section>
   </main>
 
   <div id="choiceSheet" class="hidden fixed inset-0 z-40">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
     <div class="absolute left-0 right-0 bottom-0 bg-white rounded-t-[2.5rem] shadow-2xl safe-bottom p-6">
-        <div class="text-xl font-black text-gray-900 mb-6 px-2 text-center">🥘 几成饱了？</div>
+        <div class="text-xl font-black text-gray-900 mb-6 text-center">🥘 几成饱了？</div>
         <div id="optionsContainer" class="grid grid-cols-1 gap-3 max-h-[45vh] overflow-y-auto"></div>
         <div id="sheetEndWrap" class="hidden mt-6 pt-4 border-t border-gray-100 text-center">
            <button id="sheetEndBtn" class="relative overflow-hidden w-full bg-orange-50 text-orange-800 py-4 rounded-2xl font-bold italic text-sm">
@@ -112,63 +91,69 @@
 
   <div id="goalSheet" class="hidden fixed inset-0 z-50">
     <div class="absolute inset-0 bg-black/50 backdrop-blur-md"></div>
-    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[85%] bg-white rounded-[2.5rem] p-8 text-center">
-      <div class="text-5xl mb-4">🎯</div>
-      <div class="text-2xl font-black text-gray-900 mb-6">达成 7 成饱！</div>
-      <div class="space-y-4">
-        <button id="continueBtn" class="w-full bg-orange-500 text-white py-5 rounded-2xl font-black shadow-lg">继续用餐</button>
-        <button id="goalEndBtn" class="relative overflow-hidden w-full bg-gray-100 text-gray-900 py-5 rounded-2xl font-black">
-           <div id="goalEndProgress" class="absolute inset-0 bg-gray-200" style="transform: scaleX(0); transform-origin: left; transition: transform 80ms linear;"></div>
-           <span class="relative">长按 1 秒结束</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div id="bottomBar" class="hidden fixed left-0 right-0 bottom-0 z-30 bg-white/95 backdrop-blur border-t safe-bottom">
-    <div class="px-5 py-4 flex justify-center">
-      <button id="endBtn" class="relative overflow-hidden w-full max-w-sm bg-white border-2 border-gray-100 py-4 rounded-full font-black text-gray-400">
-        <div id="endProgress" class="absolute inset-0 bg-orange-50" style="transform: scaleX(0); transform-origin: left; transition: transform 80ms linear;"></div>
-        <span id="endBtnLabel" class="relative">长按 1 秒结束</span>
+    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[85%] bg-white rounded-[2.5rem] p-8 text-center space-y-6">
+      <div class="text-5xl">🎯</div><div class="text-2xl font-black text-gray-900">达成 7 成饱！</div>
+      <button id="continueBtn" class="w-full bg-orange-500 text-white py-5 rounded-2xl font-black shadow-lg">继续用餐</button>
+      <button id="goalEndBtn" class="relative overflow-hidden w-full bg-gray-100 text-gray-900 py-5 rounded-2xl font-black">
+         <div id="goalEndProgress" class="absolute inset-0 bg-gray-200" style="transform: scaleX(0); transform-origin: left; transition: transform 80ms linear;"></div>
+         <span class="relative">长按 1 秒结束</span>
       </button>
     </div>
   </div>
 
-  <script>
-    /* ================= 核心状态 ================= */
-    // 默认时间 (新设备使用)
-    const DEFAULT_FIRST = "160000"; // 2分40秒
-    const DEFAULT_NEXT = "110000";  // 1分50秒
+  <div id="bottomBar" class="hidden fixed left-0 right-0 bottom-0 z-30 bg-white/95 backdrop-blur border-t safe-bottom">
+    <div class="px-5 py-4 flex justify-center"><button id="endBtn" class="relative overflow-hidden w-full max-w-sm bg-white border-2 border-gray-100 py-4 rounded-full font-black text-gray-400"><div id="endProgress" class="absolute inset-0 bg-orange-50" style="transform: scaleX(0); transform-origin: left; transition: transform 80ms linear;"></div><span id="endBtnLabel" class="relative">长按 1 秒结束</span></button></div>
+  </div>
 
-    let configFirst = parseInt(localStorage.getItem('user_first_time') || DEFAULT_FIRST);
-    let configNext = parseInt(localStorage.getItem('user_next_time') || DEFAULT_NEXT);
+  <script>
+    /* ================= 核心状态与时间工具 ================= */
+    const MS_PER_MIN = 60000;
+    const MS_PER_SEC = 1000;
+
+    // 默认值: 首次 2:40, 后续 1:50
+    const STORAGE_KEY_FIRST = 'eating_v3_first';
+    const STORAGE_KEY_NEXT = 'eating_v3_next';
+
+    let configFirst = parseInt(localStorage.getItem(STORAGE_KEY_FIRST)) || 160000;
+    let configNext = parseInt(localStorage.getItem(STORAGE_KEY_NEXT)) || 110000;
 
     let startTime = null, timerInterval = null, nextCheckTimeout = null, reminderInterval = null;
     let lastKeyForNext = "", lastChoiceLabel = "", isWaitingForChoice = false, hasStarted = false, hasEnded = false;
     let audioCtx = null, compressor = null, masterGain = null;
 
-    const LABEL = { 
-      "<5": "5成饱以下", "5-6": "5－6成", "6-7": "6－7成", "7-goal": "7成饱 (达标)", 
-      "7-8": "7－8成", "8-9": "8－9成", "9-10": "9-10成", "10+": "10成过量", "11+": "超级过量" 
-    };
+    const LABEL = { "<5": "5成饱以下", "5-6": "5－6成", "6-7": "6－7成", "7-goal": "7成饱 (达标)", "7-8": "7－8成", "8-9": "8－9成", "9-10": "9-10成", "10+": "10成过量", "11+": "超级过量" };
 
-    /* ================= 初始化选择器 ================= */
-    const firstSelect = document.getElementById('firstTimeSet');
-    const nextSelect = document.getElementById('nextTimeSet');
+    /* ================= 初始化下拉菜单 ================= */
+    function populateSelects() {
+      const fMin = document.getElementById('firstMin'), fSec = document.getElementById('firstSec');
+      const nMin = document.getElementById('nextMin'), nSec = document.getElementById('nextSec');
 
-    // 回填保存的值
-    firstSelect.value = configFirst.toString();
-    nextSelect.value = configNext.toString();
+      // 分钟: 0-10, 秒钟: 0,10,20,30,40,50
+      for(let i=0; i<=10; i++) {
+        fMin.add(new Option(i + ' 分', i));
+        if(i <= 5) nMin.add(new Option(i + ' 分', i));
+      }
+      for(let i=0; i<60; i+=10) {
+        fSec.add(new Option(i + ' 秒', i));
+        nSec.add(new Option(i + ' 秒', i));
+      }
 
-    // 监听变化并保存
-    firstSelect.onchange = () => {
-      configFirst = parseInt(firstSelect.value);
-      localStorage.setItem('user_first_time', firstSelect.value);
-    };
-    nextSelect.onchange = () => {
-      configNext = parseInt(nextSelect.value);
-      localStorage.setItem('user_next_time', nextSelect.value);
-    };
+      // 回填初始值
+      const f_m = Math.floor(configFirst / MS_PER_MIN), f_s = (configFirst % MS_PER_MIN) / MS_PER_SEC;
+      const n_m = Math.floor(configNext / MS_PER_MIN), n_s = (configNext % MS_PER_MIN) / MS_PER_SEC;
+      fMin.value = f_m; fSec.value = f_s;
+      nMin.value = n_m; nSec.value = n_s;
+
+      const save = () => {
+        configFirst = (fMin.value * MS_PER_MIN) + (fSec.value * MS_PER_SEC) || 10000; // 最少10秒
+        configNext = (nMin.value * MS_PER_MIN) + (nSec.value * MS_PER_SEC) || 5000;   // 最少5秒
+        localStorage.setItem(STORAGE_KEY_FIRST, configFirst);
+        localStorage.setItem(STORAGE_KEY_NEXT, configNext);
+      };
+
+      [fMin, fSec, nMin, nSec].forEach(el => el.onchange = save);
+    }
+    populateSelects();
 
     /* ================= 音频引擎 ================= */
     function initAudio() {
@@ -176,31 +161,25 @@
       const AC = window.AudioContext || window.webkitAudioContext;
       audioCtx = new AC();
       compressor = audioCtx.createDynamicsCompressor();
-      masterGain = audioCtx.createGain();
-      masterGain.gain.value = 1.0;
-      compressor.connect(masterGain);
-      masterGain.connect(audioCtx.destination);
+      masterGain = audioCtx.createGain(); masterGain.gain.value = 1.0;
+      compressor.connect(masterGain); masterGain.connect(audioCtx.destination);
     }
     function playTone(f, s, d, v, t = "triangle") {
       try {
         const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
         o.type = t; o.frequency.setValueAtTime(f, s);
-        g.gain.setValueAtTime(0.001, s);
-        g.gain.exponentialRampToValueAtTime(v, s + 0.05);
+        g.gain.setValueAtTime(0.001, s); g.gain.exponentialRampToValueAtTime(v, s + 0.05);
         g.gain.exponentialRampToValueAtTime(0.001, s + d);
-        o.connect(g); g.connect(compressor);
-        o.start(s); o.stop(s + d + 0.1);
+        o.connect(g); g.connect(compressor); o.start(s); o.stop(s + d + 0.1);
       } catch(e){}
     }
     function playCheckSound() {
       initAudio(); if (audioCtx.state === 'suspended') audioCtx.resume();
-      const n = audioCtx.currentTime;
-      playTone(523.25, n, 0.3, 0.6); playTone(659.25, n + 0.15, 0.3, 0.6);
+      const n = audioCtx.currentTime; playTone(523.25, n, 0.3, 0.6); playTone(659.25, n + 0.15, 0.3, 0.6);
     }
     function playSuccessMusic() {
       initAudio(); if (audioCtx.state === 'suspended') audioCtx.resume();
-      const n = audioCtx.currentTime;
-      [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => playTone(f, n + i * 0.15, 0.6, 0.5, "sine"));
+      const n = audioCtx.currentTime; [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => playTone(f, n + i * 0.15, 0.6, 0.5, "sine"));
     }
 
     /* ================= 业务逻辑 ================= */
@@ -208,30 +187,23 @@
       if (hasStarted) return;
       initAudio(); if (audioCtx.state === 'suspended') audioCtx.resume();
       hasStarted = true; startTime = new Date();
-      
       document.getElementById('startScreen').classList.add('hidden');
       document.getElementById('eatingScreen').classList.remove('hidden');
       document.getElementById('topHeader').classList.remove('hidden');
       document.getElementById('bottomBar').classList.remove('hidden');
-      
       timerInterval = setInterval(() => {
         const d = Math.floor((Date.now() - startTime) / 1000);
-        document.getElementById('timerDisplay').textContent = 
-          `${String(Math.floor(d/60)).padStart(2,'0')}:${String(d%60).padStart(2,'0')}`;
+        document.getElementById('timerDisplay').textContent = `${String(Math.floor(d/60)).padStart(2,'0')}:${String(d%60).padStart(2,'0')}`;
       }, 1000);
-
-      // 使用配置的时间
       nextCheckTimeout = setTimeout(triggerCheck, configFirst);
-      playCheckSound();
-      addLog(`开始用餐 🥢`);
+      playCheckSound(); addLog(`开始用餐 🥢`);
     }
 
     function triggerCheck() {
       if (!hasStarted || hasEnded || isWaitingForChoice) return;
       isWaitingForChoice = true;
       document.getElementById('choiceSheet').classList.remove('hidden');
-      renderOptions();
-      playCheckSound();
+      renderOptions(); playCheckSound();
       clearInterval(reminderInterval);
       reminderInterval = setInterval(() => { if(isWaitingForChoice) playCheckSound(); }, 15000);
     }
@@ -243,37 +215,28 @@
         if (["6-7", "7-goal"].includes(k)) return ["7-goal", "7-8", "8-9", "9-10", "10+"];
         return ["9-10", "10+", "11+"];
       };
-      const container = document.getElementById('optionsContainer');
-      container.innerHTML = '';
+      const container = document.getElementById('optionsContainer'); container.innerHTML = '';
       getOpts(lastKeyForNext).forEach(key => {
         const btn = document.createElement('button');
         btn.className = "bg-white border-2 border-orange-100 py-4 rounded-2xl font-black text-gray-800 active:bg-orange-500 active:text-white transition-all";
-        btn.textContent = LABEL[key];
-        btn.onclick = () => selectOption(key);
-        container.appendChild(btn);
+        btn.textContent = LABEL[key]; btn.onclick = () => selectOption(key); container.appendChild(btn);
       });
     }
 
     function selectOption(key) {
-      lastKeyForNext = key; lastChoiceLabel = LABEL[key];
-      isWaitingForChoice = false;
-      document.getElementById('choiceSheet').classList.add('hidden');
-      clearInterval(reminderInterval);
+      lastKeyForNext = key; lastChoiceLabel = LABEL[key]; isWaitingForChoice = false;
+      document.getElementById('choiceSheet').classList.add('hidden'); clearInterval(reminderInterval);
       const diff = Math.floor((Date.now() - startTime) / 1000);
       addLog(`${Math.floor(diff/60)}分${diff%60}秒 ：${LABEL[key]}`);
-
       if (key === "7-goal") {
         document.getElementById('goalSheet').classList.remove('hidden');
         showBanner("已达成 7 成目标 🎯", "建议慢慢停下。");
       } else if (key === "11+") {
         hasEnded = true; clearInterval(timerInterval); clearTimeout(nextCheckTimeout);
-        document.getElementById('eatingScreen').classList.add('hidden');
-        document.getElementById('overfullScreen').classList.remove('hidden');
+        document.getElementById('eatingScreen').classList.add('hidden'); document.getElementById('overfullScreen').classList.remove('hidden');
       } else {
         if (["7-8", "8-9", "9-10", "10+"].includes(key)) document.getElementById('sheetEndWrap').classList.remove('hidden');
-        clearTimeout(nextCheckTimeout);
-        // 使用配置的后续时间
-        nextCheckTimeout = setTimeout(triggerCheck, configNext);
+        clearTimeout(nextCheckTimeout); nextCheckTimeout = setTimeout(triggerCheck, configNext);
       }
     }
 
@@ -290,18 +253,6 @@
       document.getElementById('recordLog').scrollTop = document.getElementById('recordLog').scrollHeight;
     }
 
-    function logicReset() {
-      clearInterval(timerInterval); clearTimeout(nextCheckTimeout); clearInterval(reminderInterval);
-      startTime = null; lastKeyForNext = ""; lastChoiceLabel = "";
-      isWaitingForChoice = false; hasStarted = false; hasEnded = false;
-      ['eatingScreen', 'overfullScreen', 'goalSheet', 'choiceSheet', 'endTransitionScreen', 'topHeader', 'bottomBar', 'statusBanner'].forEach(id => {
-        document.getElementById(id).classList.add('hidden');
-      });
-      document.getElementById('startScreen').classList.remove('hidden');
-      document.getElementById('logList').innerHTML = ""; document.getElementById('logEmpty').classList.remove('hidden');
-      document.getElementById('timerDisplay').textContent = "00:00";
-    }
-
     function finalize() {
       if (hasEnded && !document.getElementById('endTransitionScreen').classList.contains('hidden')) return;
       hasEnded = true; clearInterval(timerInterval); clearTimeout(nextCheckTimeout); clearInterval(reminderInterval);
@@ -309,38 +260,31 @@
       ['eatingScreen', 'overfullScreen', 'goalSheet', 'choiceSheet', 'topHeader', 'bottomBar'].forEach(id => document.getElementById(id).classList.add('hidden'));
       document.getElementById('endTransitionScreen').classList.remove('hidden');
       document.getElementById('endTransitionText').textContent = `最后觉察：${lastChoiceLabel || '进行中'}`;
-      setTimeout(logicReset, 5000);
+      setTimeout(() => {
+        hasStarted = hasEnded = false; lastKeyForNext = ""; lastChoiceLabel = "";
+        document.getElementById('endTransitionScreen').classList.add('hidden');
+        document.getElementById('startScreen').classList.remove('hidden');
+        document.getElementById('logList').innerHTML = ""; document.getElementById('logEmpty').classList.remove('hidden');
+        document.getElementById('timerDisplay').textContent = "00:00";
+      }, 5000);
     }
 
-    /* ================= 交互 ================= */
-    function bindLongPress(btn, progressEl, onComplete) {
+    /* ================= 交互绑定 ================= */
+    function bindLP(btn, progressEl, onComplete) {
       let t = null;
-      const begin = (e) => { 
-        e.preventDefault(); let start = Date.now();
-        if ('vibrate' in navigator) navigator.vibrate(20);
-        t = setInterval(() => {
-          const p = (Date.now() - start) / 1000;
-          progressEl.style.transform = `scaleX(${Math.min(p, 1)})`;
-          if (p >= 1) { clearInterval(t); onComplete(); }
-        }, 20);
-      };
+      const begin = (e) => { e.preventDefault(); let s = Date.now(); if('vibrate' in navigator) navigator.vibrate(20);
+        t = setInterval(() => { const p = (Date.now() - s) / 1000; progressEl.style.transform = `scaleX(${Math.min(p, 1)})`; if(p >= 1) { clearInterval(t); onComplete(); } }, 20); };
       const stop = () => { clearInterval(t); progressEl.style.transform = 'scaleX(0)'; };
       btn.addEventListener('touchstart', begin); btn.addEventListener('touchend', stop);
       btn.addEventListener('mousedown', begin); btn.addEventListener('mouseup', stop);
     }
 
     document.getElementById('startBtn').onclick = startEating;
-    document.getElementById('continueBtn').onclick = () => {
-      document.getElementById('goalSheet').classList.add('hidden');
-      nextCheckTimeout = setTimeout(triggerCheck, configNext);
-    };
-    document.getElementById('toggleLogBtn').onclick = () => {
-      const el = document.getElementById('recordLog');
-      document.getElementById('toggleLogBtn').textContent = el.classList.toggle('hidden') ? '展开' : '折叠';
-    };
-    bindLongPress(document.getElementById('endBtn'), document.getElementById('endProgress'), finalize);
-    bindLongPress(document.getElementById('goalEndBtn'), document.getElementById('goalEndProgress'), finalize);
-    bindLongPress(document.getElementById('sheetEndBtn'), document.getElementById('sheetEndProgress'), finalize);
+    document.getElementById('continueBtn').onclick = () => { document.getElementById('goalSheet').classList.add('hidden'); nextCheckTimeout = setTimeout(triggerCheck, configNext); };
+    document.getElementById('toggleLogBtn').onclick = () => { const el = document.getElementById('recordLog'); document.getElementById('toggleLogBtn').textContent = el.classList.toggle('hidden') ? '展开' : '折叠'; };
+    bindLP(document.getElementById('endBtn'), document.getElementById('endProgress'), finalize);
+    bindLP(document.getElementById('goalEndBtn'), document.getElementById('goalEndProgress'), finalize);
+    bindLP(document.getElementById('sheetEndBtn'), document.getElementById('sheetEndProgress'), finalize);
   </script>
 </body>
 </html>
