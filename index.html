@@ -25,7 +25,7 @@
       <button id="toggleLogBtn" class="text-sm text-orange-600 font-medium btn-bounce px-3 py-2 rounded-lg">折叠</button>
     </div>
     <div id="recordLog" class="mt-0 max-h-32 overflow-y-auto text-sm text-gray-600 px-4 pb-3">
-      <ul id="logList" class="space-y-1"></ul>
+      <ul id="logList" class="space-y-1 border-l-2 border-orange-100 ml-1"></ul>
       <div id="logEmpty" class="text-gray-400 py-1 italic text-xs text-center">正在聆听身体的声音...</div>
     </div>
   </header>
@@ -34,23 +34,23 @@
     <section id="startScreen" class="text-center space-y-6 pt-6 fade-in">
       <div class="text-7xl">🍱</div>
       <div class="space-y-1">
-        <h1 class="text-2xl font-black text-gray-900">饮食觉察助手</h1>
-        <p class="text-gray-400 text-xs">目标：7成饱 · 细嚼慢咽</p>
+        <h1 class="text-2xl font-black text-gray-900 italic">饮食觉察助手</h1>
+        <p class="text-gray-400 text-xs">目标：7成饱 · 用心感受每一口</p>
       </div>
 
       <div class="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 space-y-5 max-w-sm mx-auto text-left">
         <div>
           <label class="text-[10px] font-bold text-gray-400 mb-2 block uppercase tracking-wider ml-1">首次提醒 (开始后)</label>
           <div class="flex gap-2">
-            <select id="firstMin" class="flex-1 bg-gray-50 border-none rounded-xl px-3 py-3 text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-200"></select>
-            <select id="firstSec" class="flex-1 bg-gray-50 border-none rounded-xl px-3 py-3 text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-200"></select>
+            <select id="firstMin" class="flex-1 bg-gray-50 border-none rounded-xl px-3 py-3 text-sm font-bold text-gray-700"></select>
+            <select id="firstSec" class="flex-1 bg-gray-50 border-none rounded-xl px-3 py-3 text-sm font-bold text-gray-700"></select>
           </div>
         </div>
         <div>
           <label class="text-[10px] font-bold text-gray-400 mb-2 block uppercase tracking-wider ml-1">后续间隔 (选择后)</label>
           <div class="flex gap-2">
-            <select id="nextMin" class="flex-1 bg-gray-50 border-none rounded-xl px-3 py-3 text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-200"></select>
-            <select id="nextSec" class="flex-1 bg-gray-50 border-none rounded-xl px-3 py-3 text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-200"></select>
+            <select id="nextMin" class="flex-1 bg-gray-50 border-none rounded-xl px-3 py-3 text-sm font-bold text-gray-700"></select>
+            <select id="nextSec" class="flex-1 bg-gray-50 border-none rounded-xl px-3 py-3 text-sm font-bold text-gray-700"></select>
           </div>
         </div>
       </div>
@@ -65,14 +65,26 @@
       <div class="relative w-48 h-48 mx-auto bg-white rounded-full flex items-center justify-center shadow-inner eating-bg">
         <div class="text-7xl animate-bounce duration-[2000ms]">🥢</div>
       </div>
-      <div id="statusBanner" class="hidden mx-auto max-w-sm rounded-3xl border-2 border-orange-50 bg-white p-6 shadow-sm text-left">
+      <div id="statusBanner" class="hidden mx-auto max-w-sm rounded-3xl border-2 border-orange-50 bg-white p-6 shadow-sm text-left fade-in">
         <div id="statusTitle" class="text-orange-600 font-black text-base"></div>
         <div id="statusText" class="mt-1 text-sm font-medium text-gray-600 leading-relaxed"></div>
       </div>
     </section>
 
-    <section id="overfullScreen" class="hidden text-center space-y-8 pt-10 fade-in"><div class="text-8xl animate-pulse">⚠️</div><div class="text-3xl font-black text-gray-900 italic">超级过量</div></section>
-    <section id="endTransitionScreen" class="hidden text-center space-y-10 pt-20 fade-in"><div class="text-8xl">✨</div><div id="endTransitionText" class="text-orange-600 text-2xl font-black italic"></div></section>
+    <section id="overfullScreen" class="hidden text-center space-y-8 pt-10 fade-in">
+      <div class="text-8xl animate-pulse">⚠️</div>
+      <div class="text-3xl font-black text-gray-900 italic">超级过量</div>
+      <p class="text-gray-700 text-lg font-medium leading-relaxed px-6">身体正在发出求救信号。<br/>请立即停止，静坐休息。</p>
+    </section>
+
+    <section id="endTransitionScreen" class="hidden text-center space-y-10 pt-20 fade-in">
+      <div class="text-8xl">✨</div>
+      <div class="space-y-4">
+        <div class="text-2xl font-black text-gray-900">这一餐辛苦了</div>
+        <div id="endTransitionText" class="text-orange-600 text-2xl font-black italic"></div>
+        <p class="text-gray-400 text-sm italic">5秒后自动重置...</p>
+      </div>
+    </section>
   </main>
 
   <div id="choiceSheet" class="hidden fixed inset-0 z-40">
@@ -92,7 +104,9 @@
   <div id="goalSheet" class="hidden fixed inset-0 z-50">
     <div class="absolute inset-0 bg-black/50 backdrop-blur-md"></div>
     <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[85%] bg-white rounded-[2.5rem] p-8 text-center space-y-6">
-      <div class="text-5xl">🎯</div><div class="text-2xl font-black text-gray-900">达成 7 成饱！</div>
+      <div class="text-5xl mb-4">🎯</div>
+      <div class="text-2xl font-black text-gray-900">达成 7 成饱！</div>
+      <p class="text-gray-600 text-sm font-medium leading-relaxed">这是身体最轻盈的状态。<br/>你想继续，还是停在这里？</p>
       <button id="continueBtn" class="w-full bg-orange-500 text-white py-5 rounded-2xl font-black shadow-lg">继续用餐</button>
       <button id="goalEndBtn" class="relative overflow-hidden w-full bg-gray-100 text-gray-900 py-5 rounded-2xl font-black">
          <div id="goalEndProgress" class="absolute inset-0 bg-gray-200" style="transform: scaleX(0); transform-origin: left; transition: transform 80ms linear;"></div>
@@ -102,17 +116,20 @@
   </div>
 
   <div id="bottomBar" class="hidden fixed left-0 right-0 bottom-0 z-30 bg-white/95 backdrop-blur border-t safe-bottom">
-    <div class="px-5 py-4 flex justify-center"><button id="endBtn" class="relative overflow-hidden w-full max-w-sm bg-white border-2 border-gray-100 py-4 rounded-full font-black text-gray-400"><div id="endProgress" class="absolute inset-0 bg-orange-50" style="transform: scaleX(0); transform-origin: left; transition: transform 80ms linear;"></div><span id="endBtnLabel" class="relative">长按 1 秒结束</span></button></div>
+    <div class="px-5 py-4 flex justify-center">
+      <button id="endBtn" class="relative overflow-hidden w-full max-w-sm bg-white border-2 border-gray-100 py-4 rounded-full font-black text-gray-400 shadow-sm">
+        <div id="endProgress" class="absolute inset-0 bg-orange-50" style="transform: scaleX(0); transform-origin: left; transition: transform 80ms linear;"></div>
+        <span id="endBtnLabel" class="relative">长按 1 秒结束</span>
+      </button>
+    </div>
   </div>
 
   <script>
-    /* ================= 核心状态与时间工具 ================= */
+    /* ================= 核心配置与存储 ================= */
     const MS_PER_MIN = 60000;
     const MS_PER_SEC = 1000;
-
-    // 默认值: 首次 2:40, 后续 1:50
-    const STORAGE_KEY_FIRST = 'eating_v3_first';
-    const STORAGE_KEY_NEXT = 'eating_v3_next';
+    const STORAGE_KEY_FIRST = 'eating_v4_first';
+    const STORAGE_KEY_NEXT = 'eating_v4_next';
 
     let configFirst = parseInt(localStorage.getItem(STORAGE_KEY_FIRST)) || 160000;
     let configNext = parseInt(localStorage.getItem(STORAGE_KEY_NEXT)) || 110000;
@@ -123,34 +140,21 @@
 
     const LABEL = { "<5": "5成饱以下", "5-6": "5－6成", "6-7": "6－7成", "7-goal": "7成饱 (达标)", "7-8": "7－8成", "8-9": "8－9成", "9-10": "9-10成", "10+": "10成过量", "11+": "超级过量" };
 
-    /* ================= 初始化下拉菜单 ================= */
+    /* ================= 初始化选择器 ================= */
     function populateSelects() {
       const fMin = document.getElementById('firstMin'), fSec = document.getElementById('firstSec');
       const nMin = document.getElementById('nextMin'), nSec = document.getElementById('nextSec');
-
-      // 分钟: 0-10, 秒钟: 0,10,20,30,40,50
-      for(let i=0; i<=10; i++) {
-        fMin.add(new Option(i + ' 分', i));
-        if(i <= 5) nMin.add(new Option(i + ' 分', i));
-      }
-      for(let i=0; i<60; i+=10) {
-        fSec.add(new Option(i + ' 秒', i));
-        nSec.add(new Option(i + ' 秒', i));
-      }
-
-      // 回填初始值
-      const f_m = Math.floor(configFirst / MS_PER_MIN), f_s = (configFirst % MS_PER_MIN) / MS_PER_SEC;
-      const n_m = Math.floor(configNext / MS_PER_MIN), n_s = (configNext % MS_PER_MIN) / MS_PER_SEC;
-      fMin.value = f_m; fSec.value = f_s;
-      nMin.value = n_m; nSec.value = n_s;
-
+      for(let i=0; i<=10; i++) fMin.add(new Option(i + ' 分', i));
+      for(let i=0; i<=5; i++) nMin.add(new Option(i + ' 分', i));
+      for(let i=0; i<60; i+=10) { fSec.add(new Option(i + ' 秒', i)); nSec.add(new Option(i + ' 秒', i)); }
+      fMin.value = Math.floor(configFirst / MS_PER_MIN); fSec.value = (configFirst % MS_PER_MIN) / MS_PER_SEC;
+      nMin.value = Math.floor(configNext / MS_PER_MIN); nSec.value = (configNext % MS_PER_MIN) / MS_PER_SEC;
       const save = () => {
-        configFirst = (fMin.value * MS_PER_MIN) + (fSec.value * MS_PER_SEC) || 10000; // 最少10秒
-        configNext = (nMin.value * MS_PER_MIN) + (nSec.value * MS_PER_SEC) || 5000;   // 最少5秒
+        configFirst = (fMin.value * MS_PER_MIN) + (fSec.value * MS_PER_SEC) || 10000;
+        configNext = (nMin.value * MS_PER_MIN) + (nSec.value * MS_PER_SEC) || 5000;
         localStorage.setItem(STORAGE_KEY_FIRST, configFirst);
         localStorage.setItem(STORAGE_KEY_NEXT, configNext);
       };
-
       [fMin, fSec, nMin, nSec].forEach(el => el.onchange = save);
     }
     populateSelects();
@@ -159,8 +163,7 @@
     function initAudio() {
       if (audioCtx) return;
       const AC = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AC();
-      compressor = audioCtx.createDynamicsCompressor();
+      audioCtx = new AC(); compressor = audioCtx.createDynamicsCompressor();
       masterGain = audioCtx.createGain(); masterGain.gain.value = 1.0;
       compressor.connect(masterGain); masterGain.connect(audioCtx.destination);
     }
@@ -182,7 +185,7 @@
       const n = audioCtx.currentTime; [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => playTone(f, n + i * 0.15, 0.6, 0.5, "sine"));
     }
 
-    /* ================= 业务逻辑 ================= */
+    /* ================= 业务核心 ================= */
     function startEating() {
       if (hasStarted) return;
       initAudio(); if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -228,14 +231,20 @@
       document.getElementById('choiceSheet').classList.add('hidden'); clearInterval(reminderInterval);
       const diff = Math.floor((Date.now() - startTime) / 1000);
       addLog(`${Math.floor(diff/60)}分${diff%60}秒 ：${LABEL[key]}`);
+
       if (key === "7-goal") {
         document.getElementById('goalSheet').classList.remove('hidden');
-        showBanner("已达成 7 成目标 🎯", "建议慢慢停下。");
+        showBanner("已达成 7 成目标 🎯", "这是最轻盈的状态，建议慢慢停下。");
       } else if (key === "11+") {
         hasEnded = true; clearInterval(timerInterval); clearTimeout(nextCheckTimeout);
         document.getElementById('eatingScreen').classList.add('hidden'); document.getElementById('overfullScreen').classList.remove('hidden');
       } else {
-        if (["7-8", "8-9", "9-10", "10+"].includes(key)) document.getElementById('sheetEndWrap').classList.remove('hidden');
+        // Banner 温馨提醒逻辑回归
+        if (key === "6-7") showBanner("快到 7 成饱了哦！", "听听身体的声音，尝试减慢速度～");
+        else if (["7-8", "8-9", "9-10", "10+"].includes(key)) {
+            showBanner("已超过预定目标", "胃部压力正在增大，建议及时结束用餐。");
+            document.getElementById('sheetEndWrap').classList.remove('hidden');
+        }
         clearTimeout(nextCheckTimeout); nextCheckTimeout = setTimeout(triggerCheck, configNext);
       }
     }
@@ -247,10 +256,22 @@
     }
 
     function addLog(text) {
-      const li = document.createElement('li'); li.className = "border-l-4 border-orange-200 pl-3 py-1 text-xs";
+      const li = document.createElement('li'); li.className = "pl-2 py-1 text-xs font-medium text-gray-500 border-l-2 border-orange-200 mb-1";
       li.innerHTML = text; document.getElementById('logList').appendChild(li);
       document.getElementById('logEmpty').classList.add('hidden');
       document.getElementById('recordLog').scrollTop = document.getElementById('recordLog').scrollHeight;
+    }
+
+    function logicReset() {
+      clearInterval(timerInterval); clearTimeout(nextCheckTimeout); clearInterval(reminderInterval);
+      startTime = null; lastKeyForNext = ""; lastChoiceLabel = "";
+      isWaitingForChoice = false; hasStarted = false; hasEnded = false;
+      ['eatingScreen', 'overfullScreen', 'goalSheet', 'choiceSheet', 'endTransitionScreen', 'topHeader', 'bottomBar', 'statusBanner'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      document.getElementById('startScreen').classList.remove('hidden');
+      document.getElementById('logList').innerHTML = ""; document.getElementById('logEmpty').classList.remove('hidden');
+      document.getElementById('timerDisplay').textContent = "00:00";
     }
 
     function finalize() {
@@ -260,13 +281,7 @@
       ['eatingScreen', 'overfullScreen', 'goalSheet', 'choiceSheet', 'topHeader', 'bottomBar'].forEach(id => document.getElementById(id).classList.add('hidden'));
       document.getElementById('endTransitionScreen').classList.remove('hidden');
       document.getElementById('endTransitionText').textContent = `最后觉察：${lastChoiceLabel || '进行中'}`;
-      setTimeout(() => {
-        hasStarted = hasEnded = false; lastKeyForNext = ""; lastChoiceLabel = "";
-        document.getElementById('endTransitionScreen').classList.add('hidden');
-        document.getElementById('startScreen').classList.remove('hidden');
-        document.getElementById('logList').innerHTML = ""; document.getElementById('logEmpty').classList.remove('hidden');
-        document.getElementById('timerDisplay').textContent = "00:00";
-      }, 5000);
+      setTimeout(logicReset, 5000);
     }
 
     /* ================= 交互绑定 ================= */
