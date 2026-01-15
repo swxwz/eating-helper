@@ -204,8 +204,8 @@
     /* =========================================================
        ✅ 只改这里（提醒时间 + 音量）
        ========================================================= */
-    const FIRST_CHECK_MS = 0 * 60 * 1000 + 5 * 1000; // 2分40秒 = 160000ms
-    const NEXT_CHECK_MS  = 0 * 60 * 1000 + 5 * 1000; // 1分50秒 = 110000ms
+    const FIRST_CHECK_MS = 2 * 60 * 1000 + 40 * 1000; // 2分40秒 = 160000ms
+    const NEXT_CHECK_MS  = 1 * 60 * 1000 + 50 * 1000; // 1分50秒 = 110000ms
     const REMINDER_EVERY_MS = 10 * 1000;
     const LONG_PRESS_MS = 1000;
 
@@ -541,3 +541,251 @@
       }
 
       applyPostChoiceUX(key);
+      scheduleNextCheck(NEXT_CHECK_MS);
+    }
+
+    function enterOverfullState() {
+      superOverfull = true;
+
+      clearInterval(timerInterval);
+      clearTimeout(nextCheckTimeout);
+      clearInterval(reminderInterval);
+
+      isWaitingForChoice = false;
+      closeChoiceSheet();
+      closeGoalSheet();
+
+      eatingScreen.classList.add('hidden');
+      overfullScreen.classList.remove('hidden');
+
+      setEndButtonDanger(true);
+      endBtnLabel.textContent = "长按 1 秒结束（已暂停）";
+    }
+
+    // ====== 结束过渡页（5秒后回开始）======
+    function showEndTransitionAndReturn() {
+      // UI：只显示过渡页
+      startScreen.classList.add('hidden');
+      eatingScreen.classList.add('hidden');
+      overfullScreen.classList.add('hidden');
+      endTransitionScreen.classList.remove('hidden');
+
+      // header / bottom 隐藏，让页面更“仪式感”
+      topHeader.classList.add('hidden');
+      bottomBar.classList.add('hidden');
+
+      const finalLabel = lastChoiceLabel || "未记录饱腹感";
+      endTransitionText.innerHTML =
+        `本次是「<span class="text-orange-600 font-extrabold">${finalLabel}</span>」。<br/>愿你越来越幸福。`;
+
+      // 播放结束小音乐（建议先确保音频可用）
+      try { playChime("end"); } catch (_) {}
+
+      clearTimeout(endReturnTimeout);
+      endReturnTimeout = setTimeout(resetToStart, 5000);
+    }
+
+    // ====== 重置回初始 ======
+    function setProgress(el, p) {
+      const clamped = Math.max(0, Math.min(1, p));
+      el.style.transform = `scaleX(${clamped})`;
+    }
+
+    function resetToStart() {
+      clearInterval(timerInterval);
+      clearTimeout(nextCheckTimeout);
+      clearInterval(reminderInterval);
+      clearTimeout(endReturnTimeout);
+
+      startTime = null;
+      timerInterval = null;
+      nextCheckTimeout = null;
+      reminderInterval = null;
+      endReturnTimeout = null;
+
+      lastKeyForNext = "";
+      lastChoiceLabel = "";
+      isWaitingForChoice = false;
+      hasStarted = false;
+      hasEnded = false;
+
+      overGoal = false;
+      superOverfull = false;
+
+      closeChoiceSheet();
+      closeGoalSheet();
+
+      // UI 复位
+      endTransitionScreen.classList.add('hidden');
+      overfullScreen.classList.add('hidden');
+      eatingScreen.classList.add('hidden');
+      startScreen.classList.remove('hidden');
+
+      topHeader.classList.remove('hidden');
+      bottomBar.classList.remove('hidden');
+
+      hideBanner();
+      timerDisplay.textContent = "已用时：00:00";
+
+      // 清空记录（如你想保留历史，把下面三行注释掉）
+      logList.innerHTML = "";
+      logEmpty.classList.remove('hidden');
+      recordLog.scrollTop = 0;
+
+      endBtn.disabled = true;
+      setEndButtonDanger(false);
+      endBtnLabel.textContent = "长按 1 秒结束";
+      setProgress(endProgress, 0);
+      setProgress(sheetEndProgress, 0);
+      setProgress(goalEndProgress, 0);
+      sheetEndWrap.classList.add('hidden');
+    }
+
+    function finalizeEnd() {
+      if (!hasStarted || hasEnded) return;
+      hasEnded = true;
+
+      clearInterval(timerInterval);
+      clearTimeout(nextCheckTimeout);
+      clearInterval(reminderInterval);
+
+      closeChoiceSheet();
+      closeGoalSheet();
+      isWaitingForChoice = false;
+
+      const diff = startTime ? Math.floor((Date.now() - startTime.getTime()) / 1000) : 0;
+      const timeStr = `${Math.floor(diff / 60)}分${diff % 60}秒`;
+      addLog(`<span class="text-gray-400 font-mono">${timeStr}</span> ：结束用餐 ✅`);
+
+      // ✅ 新增：进入过渡页，5秒后回开始页
+      showEndTransitionAndReturn();
+    }
+
+    // ====== 长按组件 ======
+    function bindLongPress({btn, progressEl, labelEl, idleText, holdingText, onComplete}) {
+      let pressing = false;
+      let t = null;
+
+      function startPress() {
+        if (btn.disabled) return;
+        pressing = true;
+        labelEl.textContent = holdingText;
+        softVibrate();
+
+        const start = Date.now();
+        setProgress(progressEl, 0);
+
+        t = setInterval(() => {
+          const elapsed = Date.now() - start;
+          const p = elapsed / LONG_PRESS_MS;
+          setProgress(progressEl, p);
+          if (elapsed >= LONG_PRESS_MS) {
+            clearInterval(t);
+            t = null;
+            pressing = false;
+            setProgress(progressEl, 1);
+            onComplete();
+          }
+        }, 16);
+      }
+
+      function cancelPress() {
+        if (!pressing) return;
+        pressing = false;
+        if (t) { clearInterval(t); t = null; }
+        setProgress(progressEl, 0);
+        labelEl.textContent = idleText;
+      }
+
+      btn.addEventListener('touchstart', (e) => { e.preventDefault(); startPress(); }, { passive: false });
+      btn.addEventListener('touchend', cancelPress);
+      btn.addEventListener('touchcancel', cancelPress);
+      btn.addEventListener('mousedown', startPress);
+      btn.addEventListener('mouseup', cancelPress);
+      btn.addEventListener('mouseleave', cancelPress);
+    }
+
+    // ====== 开始 ======
+    async function startEating() {
+      if (hasStarted) return;
+
+      hasStarted = true;
+      hasEnded = false;
+
+      startTime = new Date();
+
+      startScreen.classList.add('hidden');
+      eatingScreen.classList.remove('hidden');
+      overfullScreen.classList.add('hidden');
+      endTransitionScreen.classList.add('hidden');
+
+      topHeader.classList.remove('hidden');
+      bottomBar.classList.remove('hidden');
+
+      setEndButtonDanger(false);
+      endBtn.disabled = false;
+
+      clearInterval(timerInterval);
+      timerInterval = setInterval(updateTimer, 1000);
+      updateTimer();
+
+      await unlockAudio();
+      try { playChime("remind"); } catch (_) {}
+
+      scheduleNextCheck(FIRST_CHECK_MS);
+      addLog(`<span class="text-gray-400 font-mono">00分00秒</span> ：开始用餐`);
+      hideBanner();
+    }
+
+    continueBtn.addEventListener('click', () => {
+      closeGoalSheet();
+      scheduleNextCheck(NEXT_CHECK_MS);
+    });
+
+    // ====== 折叠记录区 ======
+    let logCollapsed = false;
+    toggleLogBtn.addEventListener('click', () => {
+      logCollapsed = !logCollapsed;
+      if (logCollapsed) {
+        recordLog.classList.add('hidden');
+        toggleLogBtn.textContent = '展开';
+      } else {
+        recordLog.classList.remove('hidden');
+        toggleLogBtn.textContent = '折叠';
+        recordLog.scrollTop = recordLog.scrollHeight;
+      }
+    });
+
+    // ====== 绑定 ======
+    startBtn.addEventListener('click', startEating);
+
+    endBtn.disabled = true;
+    bindLongPress({
+      btn: endBtn,
+      progressEl: endProgress,
+      labelEl: endBtnLabel,
+      idleText: "长按 1 秒结束",
+      holdingText: "继续按住…",
+      onComplete: finalizeEnd
+    });
+
+    bindLongPress({
+      btn: sheetEndBtn,
+      progressEl: sheetEndProgress,
+      labelEl: sheetEndLabel,
+      idleText: "长按 1 秒结束用餐",
+      holdingText: "继续按住…",
+      onComplete: finalizeEnd
+    });
+
+    bindLongPress({
+      btn: goalEndBtn,
+      progressEl: goalEndProgress,
+      labelEl: goalEndLabel,
+      idleText: "长按 1 秒结束吃饭",
+      holdingText: "继续按住…",
+      onComplete: finalizeEnd
+    });
+  </script>
+</body>
+</html>
