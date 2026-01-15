@@ -199,7 +199,7 @@
     const NEXT_CHECK_MS  = 1 * 60 * 1000 + 50 * 1000; // 1分50秒 = 110000ms
     const REMINDER_EVERY_MS = 10 * 1000;
     const LONG_PRESS_MS = 1000;
-    const CHIME_VOLUME = 0.10;
+    const CHIME_VOLUME = 0.22;
 
     const ENABLE_VIBRATE = true;
     const VIBRATE_PATTERN = [25];
@@ -368,8 +368,8 @@
 
       try {
         const now = audioCtx.currentTime;
-        const v1 = CHIME_VOLUME;
-        const v2 = Math.min(CHIME_VOLUME * 1.15, 0.12);
+        const v1 = Math.min(CHIME_VOLUME, 0.35);
+        const v2 = Math.min(CHIME_VOLUME * 1.25, 0.45);
 
         function tone(freq, start, dur, peak) {
           const o = audioCtx.createOscillator();
