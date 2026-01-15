@@ -1,154 +1,320 @@
-<script>
-  let startTime;
-  let timerInterval;
-  let nextCheckTimeout;
-  let reminderInterval;
-  let lastKeyForNext = ""; // 用“键”驱动下一轮选项
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>饮食觉察助手</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .eating-bg { background: radial-gradient(circle, #fffbeb 0%, #fef3c7 100%); }
+    .btn-bounce { transition: transform 0.12s; }
+    .btn-bounce:active { transform: scale(0.97); }
+    .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  </style>
+</head>
 
-  const logList = document.getElementById('logList');
-  const questionBox = document.getElementById('questionBox');
-  const optionsContainer = document.getElementById('optionsContainer');
+<body class="bg-gray-50 min-h-screen font-sans">
 
-  let isWaitingForChoice = false;
+  <!-- 顶部记录区（可折叠） -->
+  <header class="sticky top-0 z-20 bg-white/95 backdrop-blur border-b">
+    <div class="px-4 pt-4 pb-3">
+      <div class="flex items-center justify-between">
+        <div class="text-sm font-semibold text-gray-700">用餐觉察记录</div>
+        <button id="toggleLogBtn"
+          class="text-sm text-orange-600 font-medium btn-bounce px-3 py-2 rounded-lg active:bg-orange-50">
+          折叠
+        </button>
+      </div>
 
-  // ====== 选项配置（用 key，避免中文字符串匹配漏掉）======
-  const LABEL = {
-    "<5": "5成饱以下",
-    "5-6": "5－6成",
-    "6-7": "6－7成",
-    "7+":  "7成以上",
-    "7-8": "7－8成",
-    "8-9": "8－9成",
-    "8+":  "8成以上",
-    "9+":  "9成以上",
-    "9-10":"9成－10成",
-    "10+": "10成过量",
-    "11+": "超级过量"
-  };
+      <div id="recordLog" class="mt-2 max-h-40 overflow-y-auto text-sm text-gray-600">
+        <ul id="logList" class="space-y-1"></ul>
+        <div id="logEmpty" class="text-gray-400 py-2">还没有记录。开始吃饭后会自动记录每次选择。</div>
+      </div>
+    </div>
+  </header>
 
-  // 用户选择后，用这个把“模糊项”归一化，决定下一轮怎么出题
-  function normalizeForNext(key) {
-    if (key === "7+") return "7-8";  // “7成以上”按 7-8 档处理后续
-    if (key === "8+") return "8-9";
-    if (key === "9+") return "9-10";
-    return key;
-  }
+  <!-- 主内容 -->
+  <main class="px-5 pt-8 pb-28">
+    <!-- 开始页 -->
+    <section id="startScreen" class="text-center space-y-6">
+      <div class="text-6xl">🍱</div>
+      <div class="text-gray-700 font-semibold text-xl">饮食觉察助手</div>
+      <div class="text-gray-400 text-sm leading-relaxed">
+        开始吃饭后，系统会定时轻声提醒你选择饱腹感。<br />
+        记录会显示在上方。
+      </div>
 
-  // 根据“上一轮选择(归一化后)”得到下一轮选项（严格按你描述的规则）
-  function nextOptionsByLast(lastNormalizedKey) {
-    if (!lastNormalizedKey || lastNormalizedKey === "<5") return ["<5", "5-6", "6-7", "7+"];
+      <button onclick="startEating()"
+        class="btn-bounce bg-orange-500 text-white w-full max-w-sm mx-auto px-10 py-4 rounded-full text-xl font-bold shadow-lg active:bg-orange-600">
+        开始吃饭
+      </button>
 
-    if (lastNormalizedKey === "5-6") return ["5-6", "6-7", "7-8", "8+"];
-    if (lastNormalizedKey === "6-7") return ["6-7", "7-8", "8-9", "9+"];
+      <div class="text-xs text-gray-400">
+        小提示：手机浏览器通常需要你点击一次后才能播放语音提醒。
+      </div>
+    </section>
 
-    // 你描述：上次 7-8 -> 下次不再包含 7-8
-    if (lastNormalizedKey === "7-8") return ["8-9", "9-10", "10+", "11+"];
+    <!-- 吃饭中 -->
+    <section id="eatingScreen" class="hidden text-center space-y-6">
+      <div class="relative w-52 h-52 mx-auto bg-white rounded-full flex items-center justify-center shadow-inner eating-bg">
+        <div class="text-6xl animate-bounce">🥢</div>
+      </div>
 
-    // 你没写 8-9 的规则，我这里按“自然衔接”给到：9-10, 10+, 超级过量
-    if (lastNormalizedKey === "8-9") return ["9-10", "10+", "11+"];
+      <div id="timerDisplay" class="text-gray-500 text-sm">已用时：00:00</div>
 
-    if (lastNormalizedKey === "9-10") return ["9-10", "10+", "11+"];
-    if (lastNormalizedKey === "10+") return ["10+", "11+"];
-    if (lastNormalizedKey === "11+") return ["11+"];
+      <!-- 提问区 -->
+      <div id="questionBox" class="hidden space-y-4">
+        <p class="text-lg font-semibold text-gray-800">你现在有几成饱腹感？</p>
+        <div id="optionsContainer" class="grid grid-cols-1 gap-3"></div>
 
-    // 兜底
-    return ["9-10", "10+", "11+"];
-  }
+        <div class="text-xs text-gray-400 leading-relaxed">
+          如果你暂时不想选，会每隔一段时间轻声提醒一次。
+        </div>
+      </div>
+    </section>
+  </main>
 
-  // ====== 柔和语音提醒（防排队）======
-  function playSoftNotice() {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel(); // 防止每10秒排队越积越多
-    const msg = new SpeechSynthesisUtterance("请问你现在几成饱了？");
-    msg.rate = 0.85;
-    msg.pitch = 1.0;
-    msg.lang = 'zh-CN';
-    window.speechSynthesis.speak(msg);
-  }
+  <!-- 底部固定操作栏 -->
+  <div class="fixed left-0 right-0 bottom-0 z-30 bg-white/95 backdrop-blur border-t safe-bottom">
+    <div class="px-4 py-3 flex items-center justify-center gap-3">
+      <button id="endBtn" onclick="stopEating()"
+        class="btn-bounce w-full max-w-sm bg-white border-2 border-gray-200 text-gray-800 px-10 py-4 rounded-full text-lg font-semibold shadow-md active:bg-gray-100 disabled:opacity-40 disabled:active:bg-white">
+        结束吃饭
+      </button>
+    </div>
+  </div>
 
-  function scheduleNextCheck(ms) {
-    clearTimeout(nextCheckTimeout);
-    nextCheckTimeout = setTimeout(triggerCheck, ms);
-  }
+  <script>
+    /* =========================================================
+       ✅ 这里改时间：第一轮提醒 / 后续每轮提醒
+       ========================================================= */
+    const FIRST_CHECK_MS = 10 * 1000; // 第一轮：10秒（你要改就改这里）
+    const NEXT_CHECK_MS  = 5  * 1000; // 后续每轮：5秒（你要改就改这里）
 
-  function startEating() {
-    startTime = new Date();
-    document.getElementById('startScreen').classList.add('hidden');
-    document.getElementById('eatingScreen').classList.remove('hidden');
+    /* =========================================================
+       ✅ 这里改“未选择持续提醒”的频率
+       ========================================================= */
+    const REMINDER_EVERY_MS = 10 * 1000; // 不选择时，每10秒提醒一次
 
-    timerInterval = setInterval(updateTimer, 1000);
+    /* =========================================================
+       ✅ 可选：是否震动（手机支持才会生效）
+       ========================================================= */
+    const ENABLE_VIBRATE = true;
+    const VIBRATE_PATTERN = [30]; // 很轻的震动
 
-    // 第一次：3分钟
-    scheduleNextCheck(18000);
-  }
+    let startTime;
+    let timerInterval;
+    let nextCheckTimeout;
+    let reminderInterval;
 
-  function updateTimer() {
-    const diff = Math.floor((Date.now() - startTime.getTime()) / 1000);
-    const m = String(Math.floor(diff / 60)).padStart(2, '0');
-    const s = String(diff % 60).padStart(2, '0');
-    document.getElementById('timerDisplay').innerText = `已用时：${m}:${s}`;
-  }
+    let lastKeyForNext = ""; // 用“键”驱动下一轮选项
+    let isWaitingForChoice = false;
+    let hasStarted = false;
 
-  function renderOptions() {
-    const options = nextOptionsByLast(lastKeyForNext);
-    optionsContainer.innerHTML = '';
-    options.forEach(key => {
-      const btn = document.createElement('button');
-      btn.className = "bg-white border-2 border-orange-200 py-3 rounded-xl shadow-sm active:bg-orange-100 transition";
-      btn.innerText = LABEL[key] || key;
-      btn.onclick = () => makeChoice(key);
-      optionsContainer.appendChild(btn);
-    });
-  }
+    const logList = document.getElementById('logList');
+    const logEmpty = document.getElementById('logEmpty');
+    const recordLog = document.getElementById('recordLog');
+    const toggleLogBtn = document.getElementById('toggleLogBtn');
 
-  function triggerCheck() {
-    if (isWaitingForChoice) return; // 防止重复触发叠加
-    isWaitingForChoice = true;
-    questionBox.classList.remove('hidden');
+    const questionBox = document.getElementById('questionBox');
+    const optionsContainer = document.getElementById('optionsContainer');
 
-    renderOptions();
+    const endBtn = document.getElementById('endBtn');
 
-    clearInterval(reminderInterval);
-    reminderInterval = setInterval(() => {
-      if (isWaitingForChoice) playSoftNotice();
-    }, 10000);
+    // ====== 选项配置（用 key，避免中文字符串匹配漏掉）======
+    const LABEL = {
+      "<5":  "5成饱以下",
+      "5-6": "5－6成",
+      "6-7": "6－7成",
+      "7+":  "7成以上",
+      "7-8": "7－8成",
+      "8-9": "8－9成",
+      "8+":  "8成以上",
+      "9+":  "9成以上",
+      "9-10":"9成－10成",
+      "10+": "10成过量",
+      "11+": "超级过量"
+    };
 
-    playSoftNotice();
-  }
-
-  function makeChoice(key) {
-    const label = LABEL[key] || key;
-
-    isWaitingForChoice = false;
-    questionBox.classList.add('hidden');
-    clearInterval(reminderInterval);
-
-    // 记录时间戳
-    const diff = Math.floor((Date.now() - startTime.getTime()) / 1000);
-    const timeStr = `${Math.floor(diff / 60)}分${diff % 60}秒`;
-
-    const li = document.createElement('li');
-    li.innerHTML = `<span class="text-orange-500 font-mono">${timeStr}</span> : ${label}`;
-    logList.prepend(li);
-
-    // 更新“用于下一轮出题”的 key
-    lastKeyForNext = normalizeForNext(key);
-
-    if (lastKeyForNext === "11+") {
-      alert("检测到已达到超级过量，建议停止进食哦。");
-      // 也可以选择：到达最终状态后不再提醒
-      // return;
+    function normalizeForNext(key) {
+      if (key === "7+") return "7-8";
+      if (key === "8+") return "8-9";
+      if (key === "9+") return "9-10";
+      return key;
     }
 
-    // 下一次：2分钟
-    scheduleNextCheck(12000);
-  }
+    function nextOptionsByLast(lastNormalizedKey) {
+      if (!lastNormalizedKey || lastNormalizedKey === "<5") return ["<5", "5-6", "6-7", "7+"];
 
-  function stopEating() {
-    if (!confirm("确定结束用餐吗？")) return;
-    clearInterval(timerInterval);
-    clearTimeout(nextCheckTimeout);
-    clearInterval(reminderInterval);
-    location.reload();
-  }
-</script>
+      if (lastNormalizedKey === "5-6") return ["5-6", "6-7", "7-8", "8+"];
+      if (lastNormalizedKey === "6-7") return ["6-7", "7-8", "8-9", "9+"];
+
+      if (lastNormalizedKey === "7-8") return ["8-9", "9-10", "10+", "11+"];
+
+      // 你没明确 8-9 的规则，这里做自然衔接
+      if (lastNormalizedKey === "8-9") return ["9-10", "10+", "11+"];
+
+      if (lastNormalizedKey === "9-10") return ["9-10", "10+", "11+"];
+      if (lastNormalizedKey === "10+") return ["10+", "11+"];
+      if (lastNormalizedKey === "11+") return ["11+"];
+
+      return ["9-10", "10+", "11+"];
+    }
+
+    // ====== 柔和语音提醒（防排队）======
+    function playSoftNotice() {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const msg = new SpeechSynthesisUtterance("请问你现在几成饱了？");
+      msg.rate = 0.85;
+      msg.pitch = 1.0;
+      msg.lang = 'zh-CN';
+      window.speechSynthesis.speak(msg);
+    }
+
+    function softVibrate() {
+      if (!ENABLE_VIBRATE) return;
+      if (!('vibrate' in navigator)) return;
+      try { navigator.vibrate(VIBRATE_PATTERN); } catch (_) {}
+    }
+
+    function scheduleNextCheck(ms) {
+      clearTimeout(nextCheckTimeout);
+      nextCheckTimeout = setTimeout(triggerCheck, ms);
+    }
+
+    function updateTimer() {
+      const diff = Math.floor((Date.now() - startTime.getTime()) / 1000);
+      const m = String(Math.floor(diff / 60)).padStart(2, '0');
+      const s = String(diff % 60).padStart(2, '0');
+      document.getElementById('timerDisplay').innerText = `已用时：${m}:${s}`;
+    }
+
+    function scrollLogToTopNew() {
+      // 你用的是 prepend，新记录在顶部，保持顶部即可
+      recordLog.scrollTop = 0;
+    }
+
+    function renderOptions() {
+      const options = nextOptionsByLast(lastKeyForNext);
+      optionsContainer.innerHTML = '';
+      options.forEach(key => {
+        const btn = document.createElement('button');
+        btn.className = "btn-bounce bg-white border-2 border-orange-200 py-3 rounded-xl shadow-sm active:bg-orange-50 transition text-base font-semibold";
+        btn.innerText = LABEL[key] || key;
+        btn.onclick = () => makeChoice(key);
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    function triggerCheck() {
+      if (!hasStarted) return;
+      if (isWaitingForChoice) return;
+
+      isWaitingForChoice = true;
+      questionBox.classList.remove('hidden');
+      renderOptions();
+
+      clearInterval(reminderInterval);
+      reminderInterval = setInterval(() => {
+        if (isWaitingForChoice) {
+          playSoftNotice();
+          softVibrate();
+        }
+      }, REMINDER_EVERY_MS);
+
+      playSoftNotice();
+      softVibrate();
+    }
+
+    function addLog(labelText) {
+      logEmpty.classList.add('hidden');
+      const li = document.createElement('li');
+      li.className = "leading-relaxed";
+      li.innerHTML = labelText;
+      logList.prepend(li);
+      scrollLogToTopNew();
+    }
+
+    function makeChoice(key) {
+      const label = LABEL[key] || key;
+
+      isWaitingForChoice = false;
+      questionBox.classList.add('hidden');
+      clearInterval(reminderInterval);
+
+      const diff = Math.floor((Date.now() - startTime.getTime()) / 1000);
+      const timeStr = `${Math.floor(diff / 60)}分${diff % 60}秒`;
+
+      addLog(`<span class="text-orange-500 font-mono">${timeStr}</span> ：${label}`);
+
+      lastKeyForNext = normalizeForNext(key);
+
+      if (lastKeyForNext === "11+") {
+        alert("检测到已达到超级过量，建议停止进食哦。");
+        // 如果你想“最终选择后不再提醒”，把下面这一行取消注释即可：
+        // return;
+      }
+
+      scheduleNextCheck(NEXT_CHECK_MS);
+    }
+
+    // ========= 入口 =========
+    function startEating() {
+      hasStarted = true;
+      startTime = new Date();
+
+      document.getElementById('startScreen').classList.add('hidden');
+      document.getElementById('eatingScreen').classList.remove('hidden');
+
+      endBtn.disabled = false;
+
+      // 解锁音频（有些浏览器需要第一次点击后才允许 speak）
+      playSoftNotice();
+      window.speechSynthesis.cancel();
+
+      timerInterval = setInterval(updateTimer, 1000);
+
+      // 第一轮：10秒
+      scheduleNextCheck(FIRST_CHECK_MS);
+    }
+
+    function stopEating() {
+      if (!hasStarted) {
+        alert("还没开始吃饭哦～");
+        return;
+      }
+      if (!confirm("确定结束用餐吗？")) return;
+
+      clearInterval(timerInterval);
+      clearTimeout(nextCheckTimeout);
+      clearInterval(reminderInterval);
+
+      // 结束时再加一条记录
+      const diff = Math.floor((Date.now() - startTime.getTime()) / 1000);
+      const timeStr = `${Math.floor(diff / 60)}分${diff % 60}秒`;
+      addLog(`<span class="text-gray-400 font-mono">${timeStr}</span> ：结束用餐 ✅`);
+
+      // 简单重置（也可以改成展示总结页）
+      setTimeout(() => location.reload(), 600);
+    }
+
+    // ========= 记录区折叠 =========
+    let logCollapsed = false;
+    toggleLogBtn.addEventListener('click', () => {
+      logCollapsed = !logCollapsed;
+      if (logCollapsed) {
+        recordLog.classList.add('hidden');
+        toggleLogBtn.innerText = '展开';
+      } else {
+        recordLog.classList.remove('hidden');
+        toggleLogBtn.innerText = '折叠';
+      }
+    });
+
+    // 初始化：结束按钮默认可用/不可用你自己决定
+    endBtn.disabled = true;
+  </script>
+</body>
+</html>
+
