@@ -11,11 +11,8 @@
     .btn-bounce:active { transform: scale(0.97); }
     .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
     .no-select { -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color: transparent; }
-    .fade-in-up { animation: fadeInUp 0.4s ease-out; }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   </style>
 </head>
 
@@ -35,47 +32,45 @@
   </header>
 
   <main class="px-5 pt-6 pb-28">
-    <section id="startScreen" class="text-center space-y-8 pt-16">
+    <section id="startScreen" class="text-center space-y-8 pt-16 fade-in">
       <div class="text-8xl">🍱</div>
       <div class="space-y-3">
         <h1 class="text-3xl font-black text-gray-900">饮食觉察助手</h1>
         <p class="text-gray-500 text-sm leading-relaxed px-10">
           目标：<span class="text-orange-600 font-bold">7成饱</span><br/>
-          定时提醒，陪你用心感受每一口
+          用心感受每一口，不联网也能用
         </p>
       </div>
-      <button id="startBtn" class="btn-bounce bg-orange-500 text-white w-64 h-20 mx-auto rounded-full text-xl font-black shadow-xl shadow-orange-100">
+      <button id="startBtn" class="btn-bounce bg-orange-500 text-white w-64 h-20 mx-auto rounded-full text-xl font-black shadow-xl">
         开始吃饭
       </button>
     </section>
 
-    <section id="eatingScreen" class="hidden text-center space-y-8">
+    <section id="eatingScreen" class="hidden text-center space-y-8 fade-in">
       <div id="timerDisplay" class="font-mono text-5xl font-extralight text-orange-300">00:00</div>
       <div class="relative w-48 h-48 mx-auto bg-white rounded-full flex items-center justify-center shadow-inner eating-bg">
         <div class="text-7xl animate-bounce duration-[2000ms]">🥢</div>
       </div>
-      <div id="statusBanner" class="hidden mx-auto max-w-sm rounded-3xl border-2 border-orange-50 bg-white p-6 shadow-sm text-left fade-in-up">
+      <div id="statusBanner" class="hidden mx-auto max-w-sm rounded-3xl border-2 border-orange-50 bg-white p-6 shadow-sm text-left">
         <div id="statusTitle" class="text-orange-600 font-black text-base"></div>
         <div id="statusText" class="mt-1 text-sm font-medium text-gray-600 leading-relaxed"></div>
       </div>
     </section>
 
-    <section id="overfullScreen" class="hidden text-center space-y-8 pt-10">
+    <section id="overfullScreen" class="hidden text-center space-y-8 pt-10 fade-in">
       <div class="text-8xl animate-pulse">⚠️</div>
-      <div class="space-y-4">
-        <div class="text-3xl font-black text-gray-900 italic">超级过量</div>
-        <p class="text-gray-700 text-lg font-medium leading-relaxed">
-          请立即停止进食，深呼吸。<br/>身体需要你的照顾而非负担。
-        </p>
-      </div>
+      <div class="text-3xl font-black text-gray-900 italic">超级过量</div>
+      <p class="text-gray-700 text-lg font-medium leading-relaxed">
+        请立即停止进食，深呼吸。<br/>身体需要你的照顾而非负担。
+      </p>
     </section>
 
-    <section id="endTransitionScreen" class="hidden text-center space-y-10 pt-20">
+    <section id="endTransitionScreen" class="hidden text-center space-y-10 pt-20 fade-in">
       <div class="text-8xl">✨</div>
       <div class="space-y-4">
         <div class="text-2xl font-black text-gray-900">这一餐辛苦了</div>
         <div id="endTransitionText" class="text-orange-600 text-2xl font-black italic"></div>
-        <p class="text-gray-400 text-sm italic">愿你接下来的时光轻盈舒适</p>
+        <p class="text-gray-400 text-sm italic">5秒后自动重置...</p>
       </div>
     </section>
   </main>
@@ -86,8 +81,8 @@
         <div class="text-xl font-black text-gray-900 mb-6 px-2">🥘 你现在几成饱了？</div>
         <div id="optionsContainer" class="grid grid-cols-1 gap-3 max-h-[45vh] overflow-y-auto"></div>
         <div id="sheetEndWrap" class="hidden mt-6 pt-4 border-t border-gray-100">
-           <button id="sheetEndBtn" class="relative overflow-hidden w-full bg-orange-50/50 text-orange-800 py-4 rounded-2xl font-bold italic text-sm">
-             <div id="sheetEndProgress" class="absolute inset-0 bg-orange-200/30" style="transform: scaleX(0); transform-origin: left; transition: transform 80ms linear;"></div>
+           <button id="sheetEndBtn" class="relative overflow-hidden w-full bg-orange-50 text-orange-800 py-4 rounded-2xl font-bold italic text-sm">
+             <div id="sheetEndProgress" class="absolute inset-0 bg-orange-200" style="transform: scaleX(0); transform-origin: left; transition: transform 80ms linear;"></div>
              <span class="relative">长按此处提前结束</span>
            </button>
         </div>
@@ -119,9 +114,9 @@
   </div>
 
   <script>
-    /* ================= 核心配置 ================= */
-    const FIRST_CHECK_MS = 10000;  // 10秒测试
-    const NEXT_CHECK_MS  = 5000;   // 5秒测试
+    /* ================= 配置 ================= */
+    const FIRST_CHECK_MS = 2 * 60 * 1000 + 40 * 1000; // 2分40秒 = 160000ms
+    const NEXT_CHECK_MS  = 1 * 60 * 1000 + 50 * 1000; // 1分50秒 = 110000ms
     const REMINDER_EVERY_MS = 15000; 
     const LONG_PRESS_MS = 1000;
 
@@ -134,58 +129,57 @@
       "7-8": "7－8成", "8-9": "8－9成", "9-10": "9成－10成", "10+": "10成过量", "11+": "超级过量" 
     };
 
-    /* ================= 音效引擎 ================= */
+    /* ================= 音频 ================= */
     function initAudio() {
       if (audioCtx) return;
       const AC = window.AudioContext || window.webkitAudioContext;
       audioCtx = new AC();
       compressor = audioCtx.createDynamicsCompressor();
       masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0.7;
+      masterGain.gain.value = 1.0; // 调高总增益
       compressor.connect(masterGain);
       masterGain.connect(audioCtx.destination);
     }
 
     function playTone(freq, start, dur, vol, type = "triangle") {
-      const o = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      o.type = type;
-      o.frequency.setValueAtTime(freq, start);
-      g.gain.setValueAtTime(0.001, start);
-      g.gain.exponentialRampToValueAtTime(vol, start + 0.05);
-      g.gain.exponentialRampToValueAtTime(0.001, start + dur);
-      o.connect(g); g.connect(compressor);
-      o.start(start); o.stop(start + dur + 0.1);
+      try {
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = type;
+        o.frequency.setValueAtTime(freq, start);
+        g.gain.setValueAtTime(0.001, start);
+        g.gain.exponentialRampToValueAtTime(vol, start + 0.05);
+        g.gain.exponentialRampToValueAtTime(0.001, start + dur);
+        o.connect(g); g.connect(compressor);
+        o.start(start); o.stop(start + dur + 0.1);
+      } catch(e){}
     }
 
     function playCheckSound() {
       initAudio(); if (audioCtx.state === 'suspended') audioCtx.resume();
       const now = audioCtx.currentTime;
-      playTone(523.25, now, 0.3, 0.4); // C5
-      playTone(659.25, now + 0.15, 0.3, 0.4); // E5
+      playTone(523.25, now, 0.3, 0.6);
+      playTone(659.25, now + 0.15, 0.3, 0.6);
     }
 
     function playSuccessMusic() {
       initAudio(); if (audioCtx.state === 'suspended') audioCtx.resume();
       const now = audioCtx.currentTime;
-      // 欢快治愈的旋律: C5 - E5 - G5 - C6
       const seq = [523.25, 659.25, 783.99, 1046.50];
-      seq.forEach((f, i) => {
-        playTone(f, now + i * 0.15, 0.5, 0.3, "sine");
-      });
+      seq.forEach((f, i) => playTone(f, now + i * 0.15, 0.6, 0.5, "sine"));
     }
 
     /* ================= 业务逻辑 ================= */
     function startEating() {
       if (hasStarted) return;
-      initAudio();
+      initAudio(); if (audioCtx.state === 'suspended') audioCtx.resume();
       hasStarted = true;
       startTime = new Date();
       
       document.getElementById('startScreen').classList.add('hidden');
       document.getElementById('eatingScreen').classList.remove('hidden');
       document.getElementById('topHeader').classList.remove('hidden');
-      document.getElementById('bottomBar').classList.remove('hidden'); // 吃饭时显示底部
+      document.getElementById('bottomBar').classList.remove('hidden');
       
       timerInterval = setInterval(() => {
         const d = Math.floor((Date.now() - startTime) / 1000);
@@ -204,6 +198,7 @@
       document.getElementById('choiceSheet').classList.remove('hidden');
       renderOptions();
       playCheckSound();
+      clearInterval(reminderInterval);
       reminderInterval = setInterval(() => { if(isWaitingForChoice) playCheckSound(); }, REMINDER_EVERY_MS);
     }
 
@@ -242,10 +237,10 @@
       } else {
         if (key === "6-7") showBanner("快到 7 成饱了哦！", "听听身体的声音，尝试减慢速度～");
         else if (["7-8", "8-9", "9-10", "10+"].includes(key)) {
-            showBanner("已超过预定目标", "胃部压力正在增大，建议及时结束用餐。");
+            showBanner("已超过预定目标", "建议及时结束用餐。");
             document.getElementById('sheetEndWrap').classList.remove('hidden');
-            document.getElementById('endBtn').classList.add('text-orange-600', 'border-orange-200');
         }
+        clearTimeout(nextCheckTimeout);
         nextCheckTimeout = setTimeout(triggerCheck, NEXT_CHECK_MS);
       }
     }
@@ -254,8 +249,6 @@
       hasEnded = true; clearInterval(timerInterval); clearTimeout(nextCheckTimeout);
       document.getElementById('eatingScreen').classList.add('hidden');
       document.getElementById('overfullScreen').classList.remove('hidden');
-      document.getElementById('endBtnLabel').textContent = "长按结束并记录";
-      document.getElementById('endBtn').classList.add('text-orange-600', 'border-orange-200');
     }
 
     function showBanner(title, text) {
@@ -266,11 +259,32 @@
 
     function addLog(text) {
       const li = document.createElement('li');
-      li.className = "border-l-4 border-orange-200 pl-3 py-1 fade-in-up text-xs";
+      li.className = "border-l-4 border-orange-200 pl-3 py-1 text-xs";
       li.innerHTML = text;
       document.getElementById('logList').appendChild(li);
       document.getElementById('logEmpty').classList.add('hidden');
       document.getElementById('recordLog').scrollTop = document.getElementById('recordLog').scrollHeight;
+    }
+
+    // ✅ 改进的重置逻辑：不需要刷新网页，纯逻辑回退
+    function logicReset() {
+      // 1. 停止所有计时器
+      clearInterval(timerInterval);
+      clearTimeout(nextCheckTimeout);
+      clearInterval(reminderInterval);
+
+      // 2. 清空变量
+      startTime = null; lastKeyForNext = ""; lastChoiceLabel = "";
+      isWaitingForChoice = false; hasStarted = false; hasEnded = false;
+
+      // 3. UI 归位
+      ['eatingScreen', 'overfullScreen', 'goalSheet', 'choiceSheet', 'endTransitionScreen', 'topHeader', 'bottomBar', 'statusBanner'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      document.getElementById('startScreen').classList.remove('hidden');
+      document.getElementById('logList').innerHTML = "";
+      document.getElementById('logEmpty').classList.remove('hidden');
+      document.getElementById('timerDisplay').textContent = "00:00";
     }
 
     function finalize() {
@@ -278,7 +292,6 @@
       hasEnded = true;
       clearInterval(timerInterval); clearTimeout(nextCheckTimeout); clearInterval(reminderInterval);
 
-      // 播放总结音乐
       playSuccessMusic();
 
       ['eatingScreen', 'overfullScreen', 'goalSheet', 'choiceSheet', 'topHeader', 'bottomBar'].forEach(id => {
@@ -288,10 +301,11 @@
       document.getElementById('endTransitionScreen').classList.remove('hidden');
       document.getElementById('endTransitionText').textContent = `最后觉察：${lastChoiceLabel || '进行中'}`;
       
-      setTimeout(() => location.reload(), 5000);
+      // ✅ 5秒后逻辑重置，不走 location.reload()
+      setTimeout(logicReset, 5000);
     }
 
-    /* ================= 长按交互 ================= */
+    /* ================= 交互 ================= */
     function bindLongPress(btn, progressEl, onComplete) {
       let t = null;
       const begin = (e) => { 
